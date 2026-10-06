@@ -15,7 +15,7 @@ Public pages do not link to the map, roster, or dashboard. A small lock button i
 
 **Hiding those links is obscurity for the UI. Encryption is what protects the data.** Household data is committed **only** as ciphertext (`data/residents.enc.json`, plus a copy inside `data/public-data.js`). Anyone can download the ciphertext. It cannot be read without the password.
 
-The homepage names the organizers (Tom Williams, lead; Patrick Lupardus; Ray Stephens; Gene Maggio) and does not list their addresses, personal emails, or phone numbers. The City of Lafayette Firewise contact already published on the old events page stays on the contact section.
+The public pages do not name organizers. The City of Lafayette Firewise contact is the public way to get involved.
 
 ### Community Wildfire Action Plan
 `action-plan.html` is the public Year 1 plan for **Las Trampas LAF-016**, covering **2027–2029**. The wording follows the Firewise USA three-year action plan form. Two obvious slips were corrected: "seasonal fire risks" and "sign up for the" Community Warning System. The participation target (from 24 households to at least 34, 17%, by year end 2027) is called out on the homepage and on the plan. Edit `action-plan.html` to change the plan. Do not put household data in that file. The form photos are not part of the site.
