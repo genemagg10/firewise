@@ -14,7 +14,7 @@ import csv, glob, os, re, subprocess, sys
 
 ROOT = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
 os.chdir(ROOT)
-ALLOWED = {".gitignore", ".nojekyll", "README.md", "index.html", "map.html", "roster.html", "events.html",
+ALLOWED = {".gitignore", ".nojekyll", "README.md", "index.html", "map.html", "roster.html", "events.html", "action-plan.html",
            "data/residents.enc.json", "data/public-data.js", "data/events.json", "data/events.csv"}
 ALLOWED_PREFIX = ("assets/", "tools/")
 FORBIDDEN_TOOLS = {"tools/transcription.py"}
