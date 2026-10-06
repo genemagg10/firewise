@@ -22,12 +22,15 @@
       <label class="check"><input type="checkbox" id="notSigned"> Not signed up</label>
       <label class="check"><input type="checkbox" id="neverAttended"> Never attended</label>
       <label class="check"><input type="checkbox" id="hasEmail"> Has email</label>
+      <label class="check"><input type="checkbox" id="noEmail"> No email</label>
+      <label class="check"><input type="checkbox" id="noInfo"> No info at all</label>
       <label class="check"><input type="checkbox" id="noName"> No name yet</label>
       <div class="field"><label for="conf">Name confidence</label><select id="conf"><option value="">Any</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>
       <label class="check"><input type="checkbox" id="flagged"> Flagged only</label>
       <button class="btn secondary" type="button" id="reset">Reset</button>
     </div>
   </div>
+  <p class="muted" id="totals" style="font-size:.85rem;margin:.25rem 0 0"></p>
   <div class="toolbar">
     <button class="btn" type="button" id="copy">Copy emails</button>
     <button class="btn secondary" type="button" id="csv">Export CSV</button>
@@ -41,6 +44,11 @@
     </table>
   </div>
   <p class="muted" style="font-size:.85rem">Blank cells mean the information hasn&rsquo;t been collected yet. &ldquo;Not signed up&rdquo; includes homes marked <em>no</em> and blank. Paste copied emails into the <strong>BCC</strong> field so neighbors don&rsquo;t see each other&rsquo;s addresses. Hover an email to see how it was matched to the home.</p>
+  <details class="card" id="corrBox" hidden>
+    <summary>Address corrections (<span id="corrN">0</span>): typos fixed, duplicates removed, homes added, and addresses still unconfirmed</summary>
+    <p class="muted" style="font-size:.85rem">Checked against Contra Costa County parcel (assessor) records and the county address-point locator. The printed sheet address is kept on every row.</p>
+    <div class="table-wrap"><table><thead><tr><th>Printed on sheet</th><th>Action</th><th>Now</th><th>Confidence</th><th>Evidence</th></tr></thead><tbody id="corrBody"></tbody></table></div>
+  </details>
   <details class="card" id="unplacedBox" hidden>
     <summary>Unplaced contacts (<span id="unplacedN">0</span>): emails we have but can&rsquo;t yet tie to a home</summary>
     <p class="muted" style="font-size:.85rem">Not included in Copy emails or Export CSV. Add one to a home only once you know where they live.</p>
@@ -54,6 +62,7 @@ const COLS = [
   { k: "names", t: "Name(s)", v: r => r.owner_or_resident_names.join("; ") },
   { k: "conf", t: "Name confidence", v: r => r.owner_or_resident_names.length ? (r.owner_name_confidence || (r.is_owner_of_record ? "" : "confirmed")) : "",
     sort: r => ({ confirmed: "0", high: "1", medium: "2", low: "3" }[r.owner_name_confidence || (r.owner_or_resident_names.length && !r.is_owner_of_record ? "confirmed" : "")] || "") },
+  { k: "hasemail", t: "Has email", v: r => r.emails.length ? "yes" : "", sort: r => r.emails.length ? "0" : "" },
   { k: "email", t: "Email", v: r => r.emails.join("; ") },
   { k: "address", t: "Address", v: r => r.address, sort: r => r.street + " " + String(r.number).padStart(6, "0") },
   { k: "street", t: "Street", v: r => r.street, sort: r => r.street + " " + String(r.number).padStart(6, "0") },
@@ -76,9 +85,19 @@ function cell(r, c) {
   if (c.k === "email") return Firewise.emailLinks(r);
   if (c.k === "status") return `<span class="pill ${r._status}">${esc(v)}</span>`;
   if (c.k === "names") return esc(v) + (r.is_owner_of_record ? `<div class="owner-label" title="${esc(r.owner_of_record)}${r.owner_as_of_date ? " \u00b7 deed recorded " + esc(r.owner_as_of_date) : ""}">${esc(OWNER_LABEL)}</div>` : "");
+  if (c.k === "hasemail") return v ? '<span class="pill email-has" title="has an email">&#10003; email</span>'
+    : (r._noinfo ? '<span class="pill noinfo" title="no owner/resident name, email, phone, sign-up or attendance">no info</span>' : '<span class="muted" title="no email yet">&mdash;</span>');
   if (c.k === "conf") return v ? `<span class="pill conf-${esc(v)}">${esc(v)}</span>` : "";
-  if (c.k === "address") return esc(v) + (r.flags ? ` <span class="pill flag" title="${esc(r.flags)}">flag</span>` : "") + (r.approximate ? ' <span class="muted" title="approximate map pin">&#8776;</span>' : "");
+  if (c.k === "address") return esc(v) + addrNote(r) + (r.flags ? ` <span class="pill flag" title="${esc(r.flags)}">flag</span>` : "") + (r.approximate ? ' <span class="muted" title="approximate map pin">&#8776;</span>' : "");
   return esc(v);
+}
+function addrNote(r) {
+  const st = r.address_status || "as printed", ev = r.address_correction_evidence || "";
+  if (st.startsWith("corrected") && r.printed_address && r.printed_address !== r.address)
+    return `<div class="owner-label" title="${esc(ev)}">printed on sheet: ${esc(r.printed_address)} &middot; ${esc(st)}${r.address_correction_confidence ? " (" + esc(r.address_correction_confidence) + ")" : ""}</div>`;
+  if (st.startsWith("not found")) return `<div class="owner-label warn-text" title="${esc(ev)}">address not found, needs confirmation</div>`;
+  if (st.startsWith("added")) return `<div class="owner-label" title="${esc(ev)}">added from county records (not on the printed sheet)</div>`;
+  return "";
 }
 function filtered() {
   const q = document.getElementById("q").value.trim().toLowerCase();
@@ -86,6 +105,7 @@ function filtered() {
   const ns = document.getElementById("notSigned").checked, na = document.getElementById("neverAttended").checked;
   const he = document.getElementById("hasEmail").checked, fl = document.getElementById("flagged").checked;
   const nn = document.getElementById("noName").checked, conf = document.getElementById("conf").value;
+  const ni = document.getElementById("noInfo").checked, ne = document.getElementById("noEmail").checked;
   return rows.filter(r => {
     if (street && r.street !== street) return false;
     if (status && r._status !== status) return false;
@@ -94,8 +114,10 @@ function filtered() {
     if (he && !r.emails.length) return false;
     if (fl && !r.flags) return false;
     if (nn && r.owner_or_resident_names.length) return false;
+    if (ni && !r._noinfo) return false;
+    if (ne && r.emails.length) return false;
     if (conf && (r.owner_name_confidence || "") !== conf) return false;
-    if (q) { const h = [r.address, r.owner_or_resident_names.join(" "), r.owner_of_record, r.apn, r.emails.join(" "), r.notes, r.phone, r.flags].join(" ").toLowerCase(); if (!h.includes(q)) return false; }
+    if (q) { const h = [r.address, r.owner_or_resident_names.join(" "), r.owner_of_record, r.apn, r.printed_address, r.emails.join(" "), r.notes, r.phone, r.flags].join(" ").toLowerCase(); if (!h.includes(q)) return false; }
     return true;
   });
 }
@@ -120,20 +142,33 @@ document.getElementById("copy").onclick = async () => {
   if (!ok) prompt("Copy these emails:", emails.join(", "));
 };
 document.getElementById("csv").onclick = () => {
-  const head = ["Name(s)", "Name source", "Owner of record (raw)", "Name confidence", "Deed recorded", "APN", "Email(s)", "Email confidence", "Email source", "Address", "Street", "Signed up", "Events attended", "Last contact", "Status", "Phone", "Notes", "Flags"];
+  const head = ["Name(s)", "Name source", "Owner of record (raw)", "Name confidence", "Deed recorded", "APN", "Email(s)", "Email confidence", "Email source", "Address", "Street",
+    "Printed address (sheet)", "Address status", "Address correction confidence", "No info at all", "Signed up", "Events attended", "Last contact", "Status", "Phone", "Notes", "Flags"];
   const q = s => '"' + String(s ?? "").replace(/"/g, '""') + '"';
   const lines = [head.map(q).join(",")].concat(view.map(r => [r.owner_or_resident_names.join("; "), r.source_of_name, r.owner_of_record, r.owner_name_confidence,
     r.owner_as_of_date, r.apn, r.emails.join("; "), r.email_confidence || "",
     (r.email_details || []).map(d => `${d.email} [${d.confidence}]: ${d.source}`).join(" | "), r.address, r.street,
+    r.printed_address || "", r.address_status || "", r.address_correction_confidence || "", r._noinfo ? "yes" : "",
     r.signed_up === "unknown" ? "" : r.signed_up, r.events_attended.join("; "), r.last_contact, S[r._status].label, r.phone, r.notes, r.flags].map(q).join(",")));
   const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
   const dt = new Date(); a.download = "firewise-roster-" + dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0") + ".csv"; document.body.appendChild(a); a.click(); a.remove();
   Firewise.toast(`Exported ${view.length} rows`);
 };
-Firewise.load().then(({ meta, residents, unplaced }) => {
+Firewise.load().then(({ meta, residents, unplaced, corrections }) => {
   Firewise.setGenerated(meta);
   rows = residents;
+  const c = Firewise.counts(rows);
+  document.getElementById("totals").textContent = `${c.total} homes · ${c.withEmail} have an email, ${c.total - c.withEmail} missing · ${c.withName} with a name · ${c.noInfo} with no info at all` +
+    (meta.sheet_total ? ` · from the sheet: ${meta.sheet_total} printed entries` : "");
+  const ACT = { correct: "Typo corrected", spelling: "Street spelling", remove_duplicate: "Removed duplicate", keep_flagged: "Kept, flagged", add: "Added", confirm: "Confirmed", apn_fix: "Parcel fix" };
+  if (corrections && corrections.length) {
+    document.getElementById("corrBox").hidden = false;
+    document.getElementById("corrN").textContent = corrections.length;
+    document.getElementById("corrBody").innerHTML = corrections.map(x => `<tr><td>${esc(x.printed_address)}</td><td>${esc(ACT[x.action] || x.action)}</td>` +
+      `<td>${esc(x.action === "remove_duplicate" ? "duplicate of " + x.duplicate_of : x.action === "keep_flagged" ? "(unchanged, needs confirmation)" : x.corrected_address)}</td>` +
+      `<td>${x.confidence ? `<span class="pill conf-${esc(x.confidence)}">${esc(x.confidence)}</span>` : ""}</td><td><small>${esc(x.evidence)}</small></td></tr>`).join("");
+  }
   if (unplaced && unplaced.length) {
     document.getElementById("unplacedBox").hidden = false;
     document.getElementById("unplacedN").textContent = unplaced.length;
@@ -144,6 +179,8 @@ Firewise.load().then(({ meta, residents, unplaced }) => {
   [...new Set(rows.map(r => r.street))].sort().forEach(s => document.getElementById("street").insertAdjacentHTML("beforeend", `<option>${esc(s)}</option>`));
   Object.entries(S).forEach(([k, v]) => document.getElementById("status").insertAdjacentHTML("beforeend", `<option value="${k}">${v.label}</option>`));
   if (params.get("flagged") === "1") document.getElementById("flagged").checked = true;
+  if (params.get("noinfo") === "1") document.getElementById("noInfo").checked = true;
+  if (params.get("noemail") === "1") document.getElementById("noEmail").checked = true;
   if (params.get("street")) document.getElementById("street").value = params.get("street");
   document.querySelectorAll(".controls input, .controls select").forEach(el => el.addEventListener("input", render));
   document.getElementById("reset").onclick = () => { document.querySelectorAll(".controls input[type=checkbox]").forEach(i => i.checked = false);

@@ -41,8 +41,8 @@ def secrets():
                 for v in re.split(r"[;|\n]", r.get(c) or ""):
                     v = v.strip()
                     if len(v) >= 4: vals.add(v)
-                    # also each co-owner part ("SMITH JOHN & JANE TRE" -> "SMITH JOHN", "JANE TRE"; friendly
-                    # "John & Jane Smith" -> "Jane Smith"), keeping only multi-word parts to avoid false hits
+                    # also each co-owner part ("<SURNAME> <FIRST1> & <FIRST2> TRE" -> "<SURNAME> <FIRST1>", "<FIRST2> TRE"; friendly
+                    # "<First1> & <First2> <Surname>" -> "<First2> <Surname>"), keeping only multi-word parts to avoid false hits
                     if c in ("owner_or_resident_names", "owner_of_record", "owner_names"):
                         for part in re.split(r"\s*(?:&|,|\band\b)\s*", v):
                             part = part.strip(" .()")

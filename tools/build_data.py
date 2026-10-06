@@ -17,6 +17,11 @@
                                        # low-confidence and unplaced emails are never attached. Safe to re-run.
                                        # If data/private/unmatched_emails.csv exists, its non-official rows go into the
                                        # ENCRYPTED payload as "unplaced_contacts" (never attached to a home).
+  python3 tools/build_data.py --apply-corrections data/address_corrections.csv
+                                       # apply the (git-ignored) address audit file: fix typos (keeping the printed
+                                       # address in printed_address), remove duplicate rows that carry no data, flag
+                                       # unresolved addresses, add parcels that are not on the sheet. Safe to re-run;
+                                       # re-run it after any --seed. Then --merge-owners for the corrected homes.
 
 residents.csv is the file you edit. Multi-value cells (names, emails, events_attended) are separated by ';'.
 signed_up must be yes / no / unknown (blank = unknown).  last_contact: YYYY-MM-DD.
@@ -26,7 +31,8 @@ import csv, json, os, sys, datetime, re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D = lambda *p: os.path.join(ROOT, "data", *p)
 
-RES_FIELDS = ["address", "number", "street", "apn", "lat", "lng", "geocode_quality", "owner_or_resident_names",
+RES_FIELDS = ["address", "number", "street", "printed_address", "address_status", "address_correction_confidence",
+              "address_correction_evidence", "apn", "lat", "lng", "geocode_quality", "owner_or_resident_names",
               "source_of_name", "owner_of_record", "owner_name_confidence", "owner_as_of_date", "owner_source",
               "emails", "email_confidence", "email_source_evidence", "phone", "signed_up", "events_attended", "last_contact", "notes", "flags"]
 OWNER_LABEL = "Owner of record (county deed index), may not be the current resident"
@@ -208,6 +214,84 @@ def merge_flags(path):
     write_csv(D("residents.csv"), rows, RES_FIELDS)
     print(f"added address-check flags to {n} homes")
 
+# ---------------- address corrections (data/address_corrections.csv, git-ignored) ----------------
+CORR_ACTIONS = ("correct", "spelling", "apn_fix", "remove_duplicate", "keep_flagged", "add", "confirm")
+STATUS_FOR = {"correct": "corrected", "spelling": "corrected (street spelling)", "keep_flagged": "not found - needs confirmation",
+              "add": "added (not on sheet)"}
+
+def _printed_lookup():
+    """'<number> <official street>' -> '<number> <street as printed on the sheet>' (from the local geocoder output)."""
+    out = {}
+    for g in read_csv(D("geocoded.csv")):
+        out[f'{g["number"]} {g.get("official_street") or g["street"]}'] = (f'{g["number"]} {g.get("sheet_street") or g["street"]}',
+                                                                          [g.get("flags", ""), g.get("geocode_flag", "")])
+    return out
+
+def _strip_address_flags(r, old_flags):
+    f = r.get("flags", "")
+    for t in old_flags:
+        if t: f = f.replace(t, "")
+    f = re.sub(r"Address check: .*?(?=; Owner lookup:|$)", "", f)
+    f = re.sub(r"county has 2 parcels with this situs address; used first", "", f)
+    r["flags"] = re.sub(r"(\s*;\s*)+", "; ", f).strip(" ;")
+
+def apply_corrections(path):
+    corr = read_csv(path)
+    rows = read_csv(D("residents.csv"))
+    pl = _printed_lookup()
+    for r in rows:
+        if not r.get("printed_address") and r["address"] in pl: r["printed_address"] = pl[r["address"]][0]
+        if not r.get("address_status"): r["address_status"] = "as printed"
+    by_addr = {r["address"]: r for r in rows}
+    by_printed = {r.get("printed_address"): r for r in rows if r.get("printed_address")}
+    by_apn = {r["apn"].replace("-", ""): r for r in rows if r.get("apn")}
+    n = {}
+    for c in corr:
+        a = c.get("action", "")
+        if a not in CORR_ACTIONS: print("  unknown action:", a); continue
+        if a == "confirm": n[a] = n.get(a, 0) + 1; continue
+        printed, new = c.get("printed_address", ""), c.get("corrected_address", "")
+        r = by_printed.get(printed) or by_addr.get(printed) or by_addr.get(new)
+        if a == "add" and not r: r = by_apn.get(c.get("apn", ""))
+        if a == "remove_duplicate":
+            if not r: continue                                   # already removed
+            if any(r.get(k) for k in ("owner_or_resident_names", "emails", "phone", "events_attended", "last_contact", "notes")) \
+               or (r.get("signed_up") or "unknown") != "unknown":
+                print(f"  NOT removing {printed}: row has data - merge it into {c.get('duplicate_of')} by hand first"); continue
+            rows.remove(r); n[a] = n.get(a, 0) + 1; continue
+        if a == "add" and not r:
+            r = {k: "" for k in RES_FIELDS}; r["signed_up"] = "unknown"; rows.append(r)
+        if not r: print("  no resident row for correction:", printed or new); continue
+        old_flags = pl.get(r["address"], ("", []))[1]
+        if a in ("correct", "spelling", "add", "apn_fix"):
+            r.update(address=new or r["address"], number=c.get("number") or r["number"], street=c.get("street") or r["street"],
+                     apn=c.get("apn") or r.get("apn", ""))
+            if c.get("lat") and c.get("lng"):
+                r.update(lat=c["lat"], lng=c["lng"], geocode_quality="house (parcel centroid)")
+        if a in STATUS_FOR: r["address_status"] = STATUS_FOR[a]
+        if a == "add": r["printed_address"] = ""
+        elif printed: r["printed_address"] = printed
+        r["address_correction_confidence"] = c.get("confidence", "")
+        r["address_correction_evidence"] = c.get("evidence", "")
+        _strip_address_flags(r, old_flags)
+        if a == "correct":
+            add_flag(r, f"Address corrected: printed '{printed}' -> '{new}' ({c.get('confidence')} confidence; evidence in the address details)")
+        elif a == "spelling":
+            add_flag(r, f"Street spelling corrected: printed '{printed}' -> county form '{new}'")
+        elif a == "keep_flagged":
+            add_flag(r, "Address not found, needs confirmation (see address details)")
+        elif a == "add":
+            add_flag(r, "Not on the printed sheet: added from county parcel records")
+        elif a == "apn_fix":
+            add_flag(r, "Address check: " + c.get("evidence", ""))
+        n[a] = n.get(a, 0) + 1
+    write_csv(D("residents.csv"), rows, RES_FIELDS)
+    print(f"address corrections applied: {n}; {len(rows)} homes")
+
+def load_corrections():
+    keep = ["printed_address", "action", "corrected_address", "apn", "confidence", "evidence", "duplicate_of"]
+    return [{k: c.get(k, "") for k in keep} for c in read_csv(D("address_corrections.csv"))]
+
 # ---------------- matched-email merge (tools/match_emails.py output) ----------------
 EMAIL_RANK = {"high": 3, "medium": 2, "low": 1}
 ATTACH_CONFIDENCE = ("high", "medium")          # low-confidence guesses stay in data/private, never on a home
@@ -276,6 +360,9 @@ def build():
             except ValueError: problems.append(f"row {i} ({r.get('address')}): last_contact '{lc}' is not YYYY-MM-DD")
         res.append({
             "address": r.get("address", ""), "number": r.get("number", ""), "street": r.get("street", ""), "apn": r.get("apn", ""),
+            "printed_address": r.get("printed_address", ""), "address_status": r.get("address_status", "") or "as printed",
+            "address_correction_confidence": r.get("address_correction_confidence", ""),
+            "address_correction_evidence": r.get("address_correction_evidence", ""),
             "lat": lat, "lng": lng, "geocode_quality": r.get("geocode_quality", ""),
             "approximate": not (r.get("geocode_quality", "").startswith(("house", "manual"))),
             "owner_or_resident_names": split_multi(r.get("owner_or_resident_names")),
@@ -291,7 +378,7 @@ def build():
         })
     events = [e for e in read_csv(D("events.csv")) if e.get("title")]
     meta = {"title": "Las Trampas Firewise Neighborhood", "area": "Evacuation Area 016, Lafayette, CA",
-            "sheet_total": 198, "generated": datetime.datetime.now().isoformat(timespec="minutes")}
+            "sheet_total": 198, "home_total": len(res), "generated": datetime.datetime.now().isoformat(timespec="minutes")}
     unplaced = load_unplaced()
     json.dump(res, open(D("residents.json"), "w"), indent=1)          # PLAINTEXT - git-ignored, never published
     json.dump(events, open(D("events.json"), "w"), indent=1)
@@ -302,7 +389,7 @@ def build():
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         from encrypt_data import encrypt_payload, decrypt_payload, get_password
         pw = get_password()
-        payload = {"residents": res, "unplaced_contacts": unplaced}
+        payload = {"residents": res, "unplaced_contacts": unplaced, "address_corrections": load_corrections()}
         env = encrypt_payload(payload, pw)
         assert decrypt_payload(env, pw) == payload                     # round-trip self-check
         json.dump(env, open(D("residents.enc.json"), "w"))
@@ -316,6 +403,7 @@ def build():
 
 if __name__ == "__main__":
     if "--seed" in sys.argv: seed()
+    if "--apply-corrections" in sys.argv: apply_corrections(sys.argv[sys.argv.index("--apply-corrections") + 1])
     if "--merge-owners" in sys.argv: merge_owners(sys.argv[sys.argv.index("--merge-owners") + 1])
     if "--merge-flags" in sys.argv: merge_flags(sys.argv[sys.argv.index("--merge-flags") + 1])
     if "--merge-emails" in sys.argv: merge_emails(sys.argv[sys.argv.index("--merge-emails") + 1])

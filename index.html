@@ -33,17 +33,21 @@ function showLocked(env) {
 Firewise.load({ requireResidents: false }).then(({meta, residents, _env}) => {
   Firewise.setGenerated(meta);
   if (!residents) return showLocked(_env);
-  const c = Firewise.counts(residents), T = meta.sheet_total || 198;
+  const c = Firewise.counts(residents), SHEET = meta.sheet_total || 198;
   const card = (n, label, sub) => `<div class="card"><div class="stat">${n}<small>${sub||""}</small></div><div class="muted">${label}</div></div>`;
   document.getElementById("stats").innerHTML =
-    card(c.total, "homes mapped", ` / ${T} on sheet`) +
+    card(c.total, "homes in the dataset", ` <span style="font-size:.6em;font-weight:400">from the sheet: ${SHEET}</span>`) +
     card(c.signedYes, "signed up", ` of ${c.total}`) +
     card(c.anyAttended, "attended a past event", ` of ${c.total}`) +
     card(c.withName, "homes with a name", ` of ${c.total}`) +
-    card(c.withEmail, "homes with an email", ` of ${c.total}`);
+    card(c.withEmail, "homes with an email", ` of ${c.total}`) +
+    card(c.noInfo, `<a href="roster.html?noinfo=1">homes with no info at all</a>`, ` of ${c.total}`);
   const flagged = residents.filter(r => r.flags);
+  const corrected = residents.filter(r => (r.address_status || "").startsWith("corrected")).length;
+  const added = residents.filter(r => (r.address_status || "").startsWith("added")).length;
+  const unconfirmed = residents.filter(r => (r.address_status || "").startsWith("not found")).length;
   document.getElementById("dq").innerHTML =
-    `<p><strong>${flagged.length}</strong> addresses carry a flag (possible typo on the sheet, spelling, or approximate map pin), and <strong>${c.approx}</strong> pins are approximate (placed at the street, not the house). The sheet says ${T} homes; ${c.total} unique addresses could be read from it. See the <a href="roster.html?flagged=1">flagged rows in the roster</a>.</p>`;
+    `<p><strong>${flagged.length}</strong> addresses carry a flag (possible typo on the sheet, spelling, or approximate map pin), and <strong>${c.approx}</strong> pins are approximate (placed at the street, not the house). The printed sheet lists ${SHEET} entries; after removing repeats and duplicates, correcting ${corrected} addresses against county records, and adding ${added} homes not on the sheet, the dataset has ${c.total} homes (${unconfirmed} addresses still need confirmation). See the <a href="roster.html?flagged=1">flagged rows in the roster</a>.</p>`;
 }).catch(e => document.getElementById("stats").textContent = e.message);
 </script>
 </body></html>

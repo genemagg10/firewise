@@ -100,6 +100,29 @@ against owner-of-record names. It never generates an email or an address.
    python3 tools/make_addresses.py && python3 tools/geocode.py && python3 tools/build_data.py --seed
    ```
    `--seed` keeps everything already typed into `residents.csv`.
+3. Re-apply the address audit after any `--seed` (see below).
+
+### Address corrections (typos, duplicates, added streets)
+`data/address_corrections.csv` (git-ignored, contains addresses) is the audit trail:
+`printed_address, action, corrected_address, number, street, apn, lat, lng, confidence, evidence, duplicate_of`.
+Actions: `correct` (house-number typo), `spelling` (street spelling to the county form), `remove_duplicate`
+(only removes a row that has no names/emails/notes), `keep_flagged` (no defensible correction: stays as printed,
+flagged "address not found, needs confirmation"), `add` (a county parcel not on the printed sheet), `apn_fix`, `confirm`.
+```
+FIREWISE_PASSWORD='<site password>' python3 tools/build_data.py --apply-corrections data/address_corrections.csv \
+    --merge-owners <owner file for the corrected/added homes>
+```
+* Every row keeps `printed_address` (as printed on the sheet; blank for added homes) and `address_status`
+  (`as printed`, `corrected`, `corrected (street spelling)`, `not found - needs confirmation`, `added (not on sheet)`),
+  plus the correction's confidence and evidence. Corrected and added homes are placed on their county parcel centroid.
+* The roster's collapsible "Address corrections" table shows the whole audit (it travels inside the encrypted data).
+* Counts use the actual number of homes in the dataset; the sheet's 198 printed entries is shown small for reference.
+
+### Map colors and "no info" homes
+* Map "Color by": **Email** (default; teal = has an email, pale gray = no email yet) or **Status** (sign-up status).
+* Hollow pins with a red ring = **no info at all**: no owner/resident name, email, phone, sign-up, attendance,
+  last contact or notes. Shown in both views, counted in the legend, and filterable ("No info at all" in the roster,
+  "Only homes with no info at all" on the map; `roster.html?noinfo=1`).
 
 ## Geocoding sources
 1. US Census geocoder. Its firewall rejected requests from our build machine.

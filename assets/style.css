@@ -129,3 +129,9 @@ ul.tight li{margin:.25rem 0}
 .pill.conf-medium{background:#fff4e0;color:#8a4b08;border-color:#f1d9b0}
 .pill.conf-low{background:#fdebe1;color:#9a3412;border-color:#f6c6ab}
 .pill.conf-confirmed{background:#e3eefb;color:#174a85;border-color:#b9d2f0}
+.dot.email-has{background:#0f9488;border-color:#0b4f49}
+.dot.email-none{background:rgba(201,209,214,.55);border-color:#6b7780}
+.dot.noinfo{background:#fff;border:2.5px solid #d1242f}
+.pill.email-has{background:#d5f2ee;color:#0b4f49;border-color:#9fdcd3}
+.pill.noinfo{background:#fff;color:#a40e26;border-color:#d1242f}
+.warn-text{color:var(--warn)}

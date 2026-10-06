@@ -130,15 +130,24 @@
     if (data) {
       out.residents = data.residents;
       out.unplaced = data.unplaced_contacts || [];
-      out.residents.forEach(r => (r._status = statusOf(r)));
+      out.corrections = data.address_corrections || [];
+      out.residents.forEach(r => { r._status = statusOf(r); r._noinfo = isNoInfo(r); });
       addLockButton();
     }
     out._env = env;
     return out;
   }
 
+  // "No info at all": nothing known about the household beyond its address and pin.
+  function isNoInfo(r) {
+    return !r.owner_or_resident_names.length && !r.owner_of_record && !r.emails.length && !r.phone &&
+      (r.signed_up || "unknown") === "unknown" && !r.events_attended.length && !r.last_contact && !r.notes;
+  }
+  // Map colour schemes. "email": has email / no email (+ no-info override); "status": sign-up status.
+  const EMAIL_COLORS = { has: { label: "Has an email", color: "#0f9488" }, none: { label: "No email yet", color: "#c9d1d6" } };
+  const NOINFO = { label: "No info at all", color: "#ffffff", stroke: "#d1242f" };
   function counts(residents) {
-    const c = { total: residents.length, signed: 0, attended: 0, noresp: 0, unknown: 0, anyAttended: 0, signedYes: 0, withEmail: 0, withName: 0, approx: 0 };
+    const c = { total: residents.length, signed: 0, attended: 0, noresp: 0, unknown: 0, anyAttended: 0, signedYes: 0, withEmail: 0, withName: 0, approx: 0, noInfo: 0 };
     residents.forEach(r => {
       c[r._status]++;
       if (r.events_attended.length) c.anyAttended++;
@@ -146,6 +155,7 @@
       if (r.emails.length) c.withEmail++;
       if (r.owner_or_resident_names.length) c.withName++;
       if (r.approximate) c.approx++;
+      if (r._noinfo) c.noInfo++;
     });
     return c;
   }
@@ -166,5 +176,5 @@
   }
   function setGenerated(meta) { const g = document.getElementById("gen"); if (g) g.textContent = (meta && meta.generated) || ""; }
 
-  window.Firewise = { STATUS, statusOf, load, loadPublic, showLockScreen, addLockButton, counts, esc, emailLinks, toast, copyText, setGenerated, lock };
+  window.Firewise = { STATUS, EMAIL_COLORS, NOINFO, isNoInfo, statusOf, load, loadPublic, showLockScreen, addLockButton, counts, esc, emailLinks, toast, copyText, setGenerated, lock };
 })();

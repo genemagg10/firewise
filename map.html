@@ -24,12 +24,18 @@
         <label for="street">Street</label>
         <select id="street"><option value="">All streets</option></select>
       </div>
+      <fieldset id="colorFs"><legend>Color by</legend>
+        <label><input type="radio" name="colorby" value="email" checked> Email</label>
+        <label><input type="radio" name="colorby" value="status"> Status</label>
+      </fieldset>
       <fieldset id="statusFs"><legend>Status</legend></fieldset>
       <fieldset><legend>Pins</legend>
         <label><input type="checkbox" id="approxOnly"> Only approximate / flagged pins</label>
+        <label><input type="checkbox" id="noEmailOnly"> Only homes with no email</label>
+        <label><input type="checkbox" id="noInfoOnly"> Only homes with no info at all</label>
       </fieldset>
       <button class="btn secondary" id="reset" type="button">Reset filters</button>
-      <p class="muted" style="font-size:.85rem;margin-top:1rem">Pins with a dashed white ring are approximate (house number not found; placed near the street). Status rule: signed up &rarr; else attended a past event &rarr; else marked &ldquo;no&rdquo; &rarr; else unknown.</p>
+      <p class="muted" style="font-size:.85rem;margin-top:1rem"><strong>No info at all</strong> (hollow, red ring) = no owner or resident name, email, phone, sign-up, attendance, contact or notes yet. Pins with a dashed ring are approximate (house number not found; placed near the street). Status rule: signed up &rarr; else attended a past event &rarr; else marked &ldquo;no&rdquo; &rarr; else unknown.</p>
     </aside>
     <div id="map" role="region" aria-label="Map of homes in Evacuation Area 016"></div>
   </div>
@@ -43,15 +49,38 @@ const map = L.map("map", { scrollWheelZoom: true, zoomSnap: 0.25 });
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
+const E = Firewise.EMAIL_COLORS, NI = Firewise.NOINFO;
+let colorBy = localStorage.getItem("fw-colorby") || "email";
+document.querySelector(`input[name=colorby][value=${colorBy}]`).checked = true;
 const legend = L.control({ position: "bottomright" });
-legend.onAdd = () => { const d = L.DomUtil.create("div", "legend-box");
-  d.innerHTML = "<strong>Legend</strong><br>" + Object.entries(S).map(([k, v]) => `<span class="dot ${k}"></span> ${v.label}`).join("<br>") +
-    '<br><span class="dot approx"></span> Approximate location'; return d; };
+legend.onAdd = () => { const d = L.DomUtil.create("div", "legend-box"); d.id = "legend"; return d; };
 legend.addTo(map);
+function styleFor(r) {
+  const approx = r.approximate;
+  if (r._noinfo) return { radius: 8, weight: 2.5, color: NI.stroke, dashArray: approx ? "3 3" : null, fillColor: NI.color, fillOpacity: 0.95 };
+  if (colorBy === "email") {
+    const has = r.emails.length > 0;
+    return { radius: 8, weight: approx ? 2.5 : 1.5, color: has ? (approx ? "#ffffff" : "#0b4f49") : "#6b7780",
+             dashArray: approx ? "3 3" : null, fillColor: has ? E.has.color : E.none.color, fillOpacity: has ? 0.95 : 0.55 };
+  }
+  return { radius: 8, weight: approx ? 3 : 1.5, color: approx ? "#ffffff" : "#1f2a2e", dashArray: approx ? "3 3" : null,
+           fillColor: S[r._status].color, fillOpacity: 0.9 };
+}
+function renderLegend(c) {
+  const item = (cls, label, n) => `<div><span class="dot ${cls}" aria-hidden="true"></span> ${label}${n == null ? "" : ` <span class="muted">(${n})</span>`}</div>`;
+  let h = `<strong>Color: ${colorBy === "email" ? "Email" : "Status"}</strong>`;
+  if (colorBy === "email") {
+    h += item("email-has", E.has.label, c.withEmail) + item("email-none", "No email (some info known)", c.total - c.withEmail - c.noInfo);
+  } else {
+    h += Object.entries(S).map(([k, v]) => item(k, v.label + (k === "unknown" ? " (some info)" : ""), k === "unknown" ? c.unknown - c.noInfoUnknown : c[k])).join("");
+  }
+  h += item("noinfo", NI.label, c.noInfo) + item("approx", "Approximate location", null);
+  document.getElementById("legend").innerHTML = h;
+}
 
 Firewise.load().then(({ meta, residents }) => {
   Firewise.setGenerated(meta);
-  const T = meta.sheet_total || 198;
+  const T = residents.length;   // actual homes in the dataset (the printed sheet had meta.sheet_total entries)
   const streets = [...new Set(residents.map(r => r.street))].sort();
   const sel = document.getElementById("street");
   streets.forEach(s => sel.insertAdjacentHTML("beforeend", `<option>${esc(s)}</option>`));
@@ -60,14 +89,16 @@ Firewise.load().then(({ meta, residents }) => {
     `<label><input type="checkbox" name="st" value="${k}" checked> <span class="dot ${k}" aria-hidden="true"></span> ${v.label} <span class="muted" id="n-${k}"></span></label>`));
 
   const markers = residents.filter(r => r.lat != null).map(r => {
-    const m = L.circleMarker([r.lat, r.lng], {
-      radius: 8, weight: r.approximate ? 3 : 1.5, color: r.approximate ? "#ffffff" : "#1f2a2e",
-      dashArray: r.approximate ? "3 3" : null, fillColor: S[r._status].color, fillOpacity: 0.9
-    });
+    const m = L.circleMarker([r.lat, r.lng], styleFor(r));
     const names = r.owner_or_resident_names.map(esc).join(", ");
     const emails = Firewise.emailLinks(r);
-    m.bindPopup(`<div class="popup"><div class="popup-addr">${esc(r.address)}</div>
-      <span class="pill ${r._status}">${S[r._status].label}</span>
+    const st = r.address_status || "as printed";
+    const addrInfo = st.startsWith("corrected") && r.printed_address && r.printed_address !== r.address
+      ? `<div class="owner-label">Printed on sheet: ${esc(r.printed_address)} &middot; ${esc(st)}${r.address_correction_confidence ? " (" + esc(r.address_correction_confidence) + " confidence)" : ""}</div>`
+      : st.startsWith("not found") ? '<div class="owner-label warn-text">Address not found in county records, needs confirmation</div>'
+      : st.startsWith("added") ? '<div class="owner-label">Added from county records (not on the printed sheet)</div>' : "";
+    m.bindPopup(`<div class="popup"><div class="popup-addr">${esc(r.address)}</div>${addrInfo}
+      <span class="pill ${r._status}">${S[r._status].label}</span>${r._noinfo ? ' <span class="pill noinfo">No info at all</span>' : ""}
       <dl><dt>Names</dt><dd>${names}${r.is_owner_of_record ? `<div class="owner-label">Owner of record (county deed index), may not be the current resident</div>` : ""}</dd>
       ${r.owner_name_confidence ? `<dt>Name confidence</dt><dd><span class="pill conf-${esc(r.owner_name_confidence)}">${esc(r.owner_name_confidence)}</span>${r.owner_as_of_date ? ` <small class="muted">deed recorded ${esc(r.owner_as_of_date)}</small>` : ""}</dd>` : ""}
       ${r.owner_of_record ? `<dt>On deed</dt><dd><small>${esc(r.owner_of_record)}</small></dd>` : ""}<dt>Email</dt><dd>${emails}</dd>
@@ -90,26 +121,37 @@ Firewise.load().then(({ meta, residents }) => {
     const q = document.getElementById("q").value.trim().toLowerCase();
     const st = new Set([...document.querySelectorAll('input[name=st]:checked')].map(i => i.value));
     const street = sel.value, approxOnly = document.getElementById("approxOnly").checked;
+    const noEmailOnly = document.getElementById("noEmailOnly").checked, noInfoOnly = document.getElementById("noInfoOnly").checked;
     let shown = [];
     markers.forEach(m => {
       const r = m._r;
       const hay = (r.address + " " + r.owner_or_resident_names.join(" ") + " " + r.owner_of_record + " " + r.emails.join(" ")).toLowerCase();
-      const ok = st.has(r._status) && (!street || r.street === street) && (!q || hay.includes(q)) && (!approxOnly || r.approximate || r.flags);
+      const ok = st.has(r._status) && (!street || r.street === street) && (!q || hay.includes(q)) && (!approxOnly || r.approximate || r.flags)
+        && (!noEmailOnly || !r.emails.length) && (!noInfoOnly || r._noinfo);
       if (ok) { layer.addLayer(m); shown.push(r); } else layer.removeLayer(m);
     });
     const scope = residents.filter(r => (!street || r.street === street));
     const c = Firewise.counts(scope);
+    c.noInfoUnknown = scope.filter(r => r._noinfo && r._status === "unknown").length;
     Object.keys(S).forEach(k => document.getElementById("n-" + k).textContent = `(${c[k]})`);
-    document.getElementById("summary").innerHTML =
-      `<div><span class="big">${c.signedYes}</span> of ${street ? c.total + " homes on " + esc(street) : T} signed up</div>
-       <div>${c.anyAttended} attended a past event &middot; ${c.withEmail} with email &middot; ${c.withName} with a name</div>
-       <div class="muted">Showing ${shown.length} of ${residents.length} pins</div>`;
+    const N = street ? c.total : T, where = street ? ` on ${esc(street)}` : "";
+    const emailLine = `<div><span class="big">${c.withEmail}</span> of ${N} homes${where} have an email &middot; ${N - c.withEmail} missing</div>`;
+    const signLine = `<div><span class="big">${c.signedYes}</span> of ${N} homes${where} signed up</div>`;
+    document.getElementById("summary").innerHTML = (colorBy === "email" ? emailLine + `<div>${c.signedYes} signed up</div>` : signLine + `<div>${c.withEmail} with email &middot; ${N - c.withEmail} missing</div>`) +
+      `<div>${c.anyAttended} attended a past event &middot; ${c.withName} with a name</div>
+       <div><span class="dot noinfo" aria-hidden="true"></span> ${c.noInfo} with no info at all</div>
+       <div class="muted">Showing ${shown.length} of ${residents.length} pins${meta.sheet_total ? ` &middot; <small>from the sheet: ${meta.sheet_total}</small>` : ""}</div>`;
+    renderLegend(c);
   }
-  ["q", "street", "approxOnly"].forEach(id => document.getElementById(id).addEventListener("input", apply));
+  ["q", "street", "approxOnly", "noEmailOnly", "noInfoOnly"].forEach(id => document.getElementById(id).addEventListener("input", apply));
+  document.getElementById("colorFs").addEventListener("change", e => {
+    colorBy = e.target.value; localStorage.setItem("fw-colorby", colorBy);
+    markers.forEach(m => m.setStyle(styleFor(m._r))); apply(); });
   fs.addEventListener("change", apply);
   sel.addEventListener("change", () => { apply(); const b = layer.getBounds(); if (b.isValid()) map.fitBounds(b, { padding: [40, 40], maxZoom: 17 }); });
   document.getElementById("reset").onclick = () => { document.getElementById("q").value = ""; sel.value = "";
-    document.getElementById("approxOnly").checked = false; document.querySelectorAll('input[name=st]').forEach(i => i.checked = true);
+    document.getElementById("approxOnly").checked = false; document.getElementById("noEmailOnly").checked = false;
+    document.getElementById("noInfoOnly").checked = false; document.querySelectorAll('input[name=st]').forEach(i => i.checked = true);
     apply(); map.fitBounds(layer.getBounds(), { padding: [30, 30] }); };
   apply();
 }).catch(e => { document.getElementById("summary").textContent = e.message; });
