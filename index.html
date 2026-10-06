@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Overview &middot; Las Trampas Firewise</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/style.css">
+</head><body><a class="skip" href="#content">Skip to content</a>
+<header class="site"><div class="wrap">
+  <div class="brand"><strong>Las Trampas Firewise Neighborhood</strong><span>Evacuation Area 016 &middot; Lafayette, CA</span></div>
+  <nav class="main" aria-label="Main"><ul><li><a href="index.html" aria-current="page">Overview</a></li><li><a href="map.html">Map</a></li><li><a href="roster.html">Roster</a></li><li><a href="events.html">Events &amp; Resources</a></li></ul></nav>
+</div></header><div class="private-banner" role="note">Private: contains neighbors&rsquo; contact info. Do not post publicly or share the link outside the organizing team.</div>
+<main id="content">
+  <h1>Neighborhood overview</h1>
+  <p class="lede">Organizer dashboard for the Las Trampas Firewise Neighborhood (Evacuation Area 016). Use the map to see who has engaged, the roster to build email lists, and the events page for upcoming activities and preparedness resources.</p>
+  <div class="grid cols-4" id="stats" aria-live="polite"></div>
+  <h2>Go to</h2>
+  <div class="grid cols-3">
+    <a class="card" href="map.html" style="text-decoration:none;color:inherit"><h3>Map &rarr;</h3><p class="muted">Every home on the sheet, color-coded by status. Filter by street and status.</p></a>
+    <a class="card" href="roster.html" style="text-decoration:none;color:inherit"><h3>Roster &rarr;</h3><p class="muted">Sortable, searchable table. Copy BCC-ready email lists for people not signed up or never attended.</p></a>
+    <a class="card" href="events.html" style="text-decoration:none;color:inherit"><h3>Events &amp; resources &rarr;</h3><p class="muted">Upcoming events plus evacuation, home hardening and insurance resources.</p></a>
+  </div>
+  <h2>Data quality notes</h2>
+  <div class="card" id="dq"></div>
+</main><footer class="site">Las Trampas Firewise Neighborhood &middot; private organizer tool &middot; data updated <span id="gen"></span></footer><script src="data/public-data.js"></script>
+<script src="assets/firewise.js"></script>
+<script>
+function showLocked(env) {
+  document.getElementById("stats").innerHTML = `<div class="card" style="grid-column:1/-1"><p style="margin:0 0 .6rem">Neighborhood counts and data-quality notes are part of the encrypted organizer data.</p><button class="btn" type="button" id="unlockBtn">Unlock with password</button></div>`;
+  document.getElementById("dq").innerHTML = '<p class="muted" style="margin:0">Unlock to see data-quality notes.</p>';
+  document.getElementById("unlockBtn").onclick = () => Firewise.showLockScreen(env, { dismissable: true }).then(() => location.reload()).catch(() => {});
+}
+Firewise.load({ requireResidents: false }).then(({meta, residents, _env}) => {
+  Firewise.setGenerated(meta);
+  if (!residents) return showLocked(_env);
+  const c = Firewise.counts(residents), T = meta.sheet_total || 198;
+  const card = (n, label, sub) => `<div class="card"><div class="stat">${n}<small>${sub||""}</small></div><div class="muted">${label}</div></div>`;
+  document.getElementById("stats").innerHTML =
+    card(c.total, "homes mapped", ` / ${T} on sheet`) +
+    card(c.signedYes, "signed up", ` of ${c.total}`) +
+    card(c.anyAttended, "attended a past event", ` of ${c.total}`) +
+    card(c.withEmail, "homes with an email", ` of ${c.total}`);
+  const flagged = residents.filter(r => r.flags);
+  document.getElementById("dq").innerHTML =
+    `<p><strong>${flagged.length}</strong> addresses carry a flag (possible typo on the sheet, spelling, or approximate map pin), and <strong>${c.approx}</strong> pins are approximate (placed at the street, not the house). The sheet says ${T} homes; ${c.total} unique addresses could be read from it. See the <a href="roster.html?flagged=1">flagged rows in the roster</a>.</p>`;
+}).catch(e => document.getElementById("stats").textContent = e.message);
+</script>
+</body></html>

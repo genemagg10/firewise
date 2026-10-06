@@ -1,0 +1,51 @@
+# DENY BY DEFAULT: this folder also holds private working data (resident names/emails, public-record
+# owner research). Only the files explicitly re-included below may ever be committed.
+/*
+!/.gitignore
+!/.nojekyll
+!/README.md
+!/index.html
+!/map.html
+!/roster.html
+!/events.html
+!/assets/
+!/tools/
+!/data/
+
+# data/: publish ONLY encrypted residents + public events
+/data/*
+!/data/residents.enc.json
+!/data/public-data.js
+!/data/events.json
+!/data/events.csv
+
+# tools/: scripts only (the sheet transcription is an address list -> kept local, the map shows it after unlock)
+/tools/*
+!/tools/build_data.py
+!/tools/encrypt_data.py
+!/tools/geocode.py
+!/tools/make_addresses.py
+!/tools/check_no_plaintext.py
+!/tools/screenshots.py
+!/tools/pre-commit
+
+# Belt and braces - never commit these even if the rules above change:
+data/residents.csv
+data/residents.json
+data/site-data.js
+data/link_*
+data/raw_recorder/
+data/match.json
+data/apn_deeds.json
+data/parcels_raw.json
+data/recorder.json
+data/addresses.csv
+data/geocoded.csv
+data/county_reconciliation.json
+data/reconciliation.md
+tools/transcription.py
+screenshots/
+work/
+*.log
+__pycache__/
+.env

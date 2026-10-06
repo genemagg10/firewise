@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Roster &middot; Las Trampas Firewise</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="assets/style.css">
+</head><body><a class="skip" href="#content">Skip to content</a>
+<header class="site"><div class="wrap">
+  <div class="brand"><strong>Las Trampas Firewise Neighborhood</strong><span>Evacuation Area 016 &middot; Lafayette, CA</span></div>
+  <nav class="main" aria-label="Main"><ul><li><a href="index.html">Overview</a></li><li><a href="map.html">Map</a></li><li><a href="roster.html" aria-current="page">Roster</a></li><li><a href="events.html">Events &amp; Resources</a></li></ul></nav>
+</div></header><div class="private-banner" role="note">Private: contains neighbors&rsquo; contact info. Do not post publicly or share the link outside the organizing team.</div>
+<main id="content">
+  <h1>Roster</h1>
+  <p class="lede">One row per home. Click a column heading to sort. Filters combine. &ldquo;Copy emails&rdquo; and &ldquo;Export CSV&rdquo; use only the rows currently shown.</p>
+  <div class="card">
+    <div class="controls" role="search">
+      <div class="field"><label for="q">Search</label><input type="search" id="q" placeholder="Name, email, address, notes" autocomplete="off" style="min-width:16rem"></div>
+      <div class="field"><label for="street">Street</label><select id="street"><option value="">All streets</option></select></div>
+      <div class="field"><label for="status">Status</label><select id="status"><option value="">Any status</option></select></div>
+      <label class="check"><input type="checkbox" id="notSigned"> Not signed up</label>
+      <label class="check"><input type="checkbox" id="neverAttended"> Never attended</label>
+      <label class="check"><input type="checkbox" id="hasEmail"> Has email</label>
+      <label class="check"><input type="checkbox" id="flagged"> Flagged only</label>
+      <button class="btn secondary" type="button" id="reset">Reset</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <button class="btn" type="button" id="copy">Copy emails</button>
+    <button class="btn secondary" type="button" id="csv">Export CSV</button>
+    <span id="count" class="muted" aria-live="polite"></span>
+  </div>
+  <div class="table-wrap">
+    <table id="tbl">
+      <caption class="sr-only">Residents roster, sortable by column</caption>
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="muted" style="font-size:.85rem">Blank cells mean the information hasn&rsquo;t been collected yet. &ldquo;Not signed up&rdquo; includes homes marked <em>no</em> and blank. Paste copied emails into the <strong>BCC</strong> field so neighbors don&rsquo;t see each other&rsquo;s addresses.</p>
+</main><footer class="site">Las Trampas Firewise Neighborhood &middot; private organizer tool &middot; data updated <span id="gen"></span></footer><script src="data/public-data.js"></script>
+<script src="assets/firewise.js"></script>
+<script>
+const S = Firewise.STATUS, esc = Firewise.esc;
+const COLS = [
+  { k: "names", t: "Name(s)", v: r => r.owner_or_resident_names.join("; ") },
+  { k: "email", t: "Email", v: r => r.emails.join("; ") },
+  { k: "address", t: "Address", v: r => r.address, sort: r => r.street + " " + String(r.number).padStart(6, "0") },
+  { k: "street", t: "Street", v: r => r.street, sort: r => r.street + " " + String(r.number).padStart(6, "0") },
+  { k: "signed", t: "Signed up", v: r => r.signed_up === "unknown" ? "" : r.signed_up },
+  { k: "events", t: "Events attended", v: r => r.events_attended.join("; "), sort: r => String(r.events_attended.length).padStart(3, "0") },
+  { k: "last", t: "Last contact", v: r => r.last_contact },
+  { k: "status", t: "Status", v: r => S[r._status].label },
+];
+let sortKey = "address", sortDir = 1, rows = [], view = [];
+const params = new URLSearchParams(location.search);
+const thead = document.querySelector("#tbl thead tr"), tbody = document.querySelector("#tbl tbody");
+COLS.forEach(c => thead.insertAdjacentHTML("beforeend",
+  `<th scope="col" data-k="${c.k}" aria-sort="none"><button type="button">${c.t}<span class="arrow" aria-hidden="true"></span></button></th>`));
+thead.querySelectorAll("th").forEach(th => th.querySelector("button").onclick = () => {
+  const k = th.dataset.k; sortDir = (sortKey === k) ? -sortDir : 1; sortKey = k; render(); });
+
+function cell(r, c) {
+  const v = c.v(r);
+  if (c.k === "email") return r.emails.length ? r.emails.map(e => `<a href="mailto:${esc(e)}">${esc(e)}</a>`).join("<br>") : "";
+  if (c.k === "status") return `<span class="pill ${r._status}">${esc(v)}</span>`;
+  if (c.k === "address") return esc(v) + (r.flags ? ` <span class="pill flag" title="${esc(r.flags)}">flag</span>` : "") + (r.approximate ? ' <span class="muted" title="approximate map pin">&#8776;</span>' : "");
+  return esc(v);
+}
+function filtered() {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const street = document.getElementById("street").value, status = document.getElementById("status").value;
+  const ns = document.getElementById("notSigned").checked, na = document.getElementById("neverAttended").checked;
+  const he = document.getElementById("hasEmail").checked, fl = document.getElementById("flagged").checked;
+  return rows.filter(r => {
+    if (street && r.street !== street) return false;
+    if (status && r._status !== status) return false;
+    if (ns && r.signed_up === "yes") return false;
+    if (na && r.events_attended.length) return false;
+    if (he && !r.emails.length) return false;
+    if (fl && !r.flags) return false;
+    if (q) { const h = [r.address, r.owner_or_resident_names.join(" "), r.emails.join(" "), r.notes, r.phone, r.flags].join(" ").toLowerCase(); if (!h.includes(q)) return false; }
+    return true;
+  });
+}
+function render() {
+  const col = COLS.find(c => c.k === sortKey), key = col.sort || col.v;
+  view = filtered().sort((a, b) => {
+    const x = key(a), y = key(b);
+    if (!x && y) return 1; if (x && !y) return -1;          // blanks last
+    return x.localeCompare(y, undefined, { numeric: true }) * sortDir;
+  });
+  thead.querySelectorAll("th").forEach(th => th.setAttribute("aria-sort", th.dataset.k === sortKey ? (sortDir > 0 ? "ascending" : "descending") : "none"));
+  tbody.innerHTML = view.map(r => "<tr>" + COLS.map(c => `<td>${cell(r, c)}</td>`).join("") + "</tr>").join("")
+    || `<tr><td colspan="${COLS.length}" class="empty">No homes match these filters.</td></tr>`;
+  const emails = [...new Set(view.flatMap(r => r.emails))];
+  document.getElementById("count").textContent = `${view.length} of ${rows.length} homes shown · ${emails.length} email address${emails.length === 1 ? "" : "es"}`;
+  document.getElementById("copy").disabled = !emails.length;
+}
+document.getElementById("copy").onclick = async () => {
+  const emails = [...new Set(view.flatMap(r => r.emails))];
+  const ok = await Firewise.copyText(emails.join(", "));
+  Firewise.toast(ok ? `Copied ${emails.length} emails — paste into BCC` : "Copy failed — select and copy manually");
+  if (!ok) prompt("Copy these emails:", emails.join(", "));
+};
+document.getElementById("csv").onclick = () => {
+  const head = ["Name(s)", "Email(s)", "Address", "Street", "Signed up", "Events attended", "Last contact", "Status", "Phone", "Notes", "Flags"];
+  const q = s => '"' + String(s ?? "").replace(/"/g, '""') + '"';
+  const lines = [head.map(q).join(",")].concat(view.map(r => [r.owner_or_resident_names.join("; "), r.emails.join("; "), r.address, r.street,
+    r.signed_up, r.events_attended.join("; "), r.last_contact, S[r._status].label, r.phone, r.notes, r.flags].map(q).join(",")));
+  const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  const dt = new Date(); a.download = "firewise-roster-" + dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0") + ".csv"; document.body.appendChild(a); a.click(); a.remove();
+  Firewise.toast(`Exported ${view.length} rows`);
+};
+Firewise.load().then(({ meta, residents }) => {
+  Firewise.setGenerated(meta);
+  rows = residents;
+  [...new Set(rows.map(r => r.street))].sort().forEach(s => document.getElementById("street").insertAdjacentHTML("beforeend", `<option>${esc(s)}</option>`));
+  Object.entries(S).forEach(([k, v]) => document.getElementById("status").insertAdjacentHTML("beforeend", `<option value="${k}">${v.label}</option>`));
+  if (params.get("flagged") === "1") document.getElementById("flagged").checked = true;
+  if (params.get("street")) document.getElementById("street").value = params.get("street");
+  document.querySelectorAll(".controls input, .controls select").forEach(el => el.addEventListener("input", render));
+  document.getElementById("reset").onclick = () => { document.querySelectorAll(".controls input[type=checkbox]").forEach(i => i.checked = false);
+    document.querySelectorAll(".controls select").forEach(s => s.value = ""); document.getElementById("q").value = ""; render(); };
+  render();
+}).catch(e => { tbody.innerHTML = `<tr><td>${esc(e.message)}</td></tr>`; });
+</script>
+</body></html>
