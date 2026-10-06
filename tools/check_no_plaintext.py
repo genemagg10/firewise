@@ -5,11 +5,12 @@ Checks every STAGED file (git index) for (pass --tracked to scan every committed
   * forbidden paths (plaintext data, owner research, Link's scripts)
   * any email address
   * any name / email / phone / note value that appears in the local data/residents.csv or data/link_owner_names.csv
+  * any email, or multi-word name / evidence quote, from the private email-matching files in data/private/
   * phone-number patterns
   * the site password, if FIREWISE_PASSWORD is set in the environment
 Exit code 1 (commit blocked) on any hit.
 """
-import csv, os, re, subprocess, sys
+import csv, glob, os, re, subprocess, sys
 
 ROOT = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
 os.chdir(ROOT)
@@ -49,6 +50,22 @@ def secrets():
                             w = part.split()
                             if c != "owner_or_resident_names" and len(w) >= 3 and len(w[0]) >= 3 and len(w[1]) >= 3:
                                 vals.add(" ".join(w[:2]))   # deed order "SURNAME FIRST ..." (catches partial quotes)
+    # email-matching working files (data/private/, git-ignored): emails always; names/quotes only if multi-word
+    # (single short words would false-positive on the base64 ciphertext)
+    priv = ["data/private/" + f for f in ("email_household_matches.csv", "unmatched_emails.csv", "pdf_name_clues.csv",
+                                          "gmail_evidence.csv", "manual_facts.csv")]
+    priv += sorted(glob.glob("data/private/inbox/*.csv"))
+    for path in priv:
+        if not os.path.exists(path): continue
+        for r in csv.DictReader(open(path, encoding="utf-8-sig")):
+            for c, v in r.items():
+                if not c or not v: continue
+                for part in re.split(r"[;|\n]", v):
+                    part = part.strip(" .()'\"")
+                    if "@" in part and EMAIL.fullmatch(part): vals.add(part)
+                    elif c in ("display_name", "display_names", "name", "matched_owner_name", "owner_record") and len(part) >= 6 and " " in part:
+                        vals.add(part)
+            if r.get("evidence") and len(r["evidence"]) >= 20: vals.add(r["evidence"].strip())
     pw = os.environ.get("FIREWISE_PASSWORD")
     if pw: vals.add(pw)
     return vals

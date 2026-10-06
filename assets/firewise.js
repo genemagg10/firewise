@@ -109,6 +109,17 @@
 
   /* load({ requireResidents: true })  -> prompts until unlocked (map, roster)
      load({ requireResidents: false }) -> residents only if already unlocked this session, else null (overview) */
+  /* Email links; each shows its match confidence + evidence on hover, and non-high matches get a small pill. */
+  function emailLinks(r) {
+    const det = {}; (r.email_details || []).forEach(d => (det[d.email.toLowerCase()] = d));
+    return r.emails.map(e => {
+      const d = det[e.toLowerCase()];
+      const tip = d ? `Match confidence: ${d.confidence}${d.source ? " \u00b7 " + d.source : ""}` : "Entered by an organizer";
+      return `<a href="mailto:${esc(e)}" title="${esc(tip)}">${esc(e)}</a>` +
+        (d && d.confidence && d.confidence !== "high" ? ` <span class="pill conf-${esc(d.confidence)}" title="${esc(tip)}">${esc(d.confidence)}</span>` : "");
+    }).join("<br>");
+  }
+
   async function load({ requireResidents = true } = {}) {
     const pub = await loadPublic();
     const out = { meta: pub.meta || {}, events: pub.events || [], residents: null };
@@ -118,6 +129,7 @@
     if (!data && requireResidents) data = await showLockScreen(env);
     if (data) {
       out.residents = data.residents;
+      out.unplaced = data.unplaced_contacts || [];
       out.residents.forEach(r => (r._status = statusOf(r)));
       addLockButton();
     }
@@ -154,5 +166,5 @@
   }
   function setGenerated(meta) { const g = document.getElementById("gen"); if (g) g.textContent = (meta && meta.generated) || ""; }
 
-  window.Firewise = { STATUS, statusOf, load, loadPublic, showLockScreen, addLockButton, counts, esc, toast, copyText, setGenerated, lock };
+  window.Firewise = { STATUS, statusOf, load, loadPublic, showLockScreen, addLockButton, counts, esc, emailLinks, toast, copyText, setGenerated, lock };
 })();

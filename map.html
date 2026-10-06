@@ -65,7 +65,7 @@ Firewise.load().then(({ meta, residents }) => {
       dashArray: r.approximate ? "3 3" : null, fillColor: S[r._status].color, fillOpacity: 0.9
     });
     const names = r.owner_or_resident_names.map(esc).join(", ");
-    const emails = r.emails.map(e => `<a href="mailto:${esc(e)}">${esc(e)}</a>`).join("<br>");
+    const emails = Firewise.emailLinks(r);
     m.bindPopup(`<div class="popup"><div class="popup-addr">${esc(r.address)}</div>
       <span class="pill ${r._status}">${S[r._status].label}</span>
       <dl><dt>Names</dt><dd>${names}${r.is_owner_of_record ? `<div class="owner-label">Owner of record (county deed index), may not be the current resident</div>` : ""}</dd>

@@ -63,6 +63,36 @@ FIREWISE_PASSWORD='<site password>' python3 tools/build_data.py --merge-owners d
 * Roster: the "No name yet" checkbox and "Name confidence" filter show what is still missing or uncertain.
 * `python3 tools/check_no_plaintext.py --tracked` scans every tracked file (not just staged ones) for names, emails, phones and the password.
 
+### Adding neighbor emails
+Matching runs locally. Every input and output stays in `data/private/`, which is git-ignored and never published. The
+emails reach git only inside the encrypted `data/residents.enc.json`.
+
+1. Drop each new list into `data/private/inbox/` as a CSV with an `email` column, plus optional `display_name`,
+   `source_list` (where the list came from) and `address`. For example, a list an organizer shares, or an export from Gene's mail.
+2. Match emails to homes:
+   ```
+   python3 tools/match_emails.py
+   ```
+   This writes `email_household_matches.csv` (with confidence, method, and evidence for each match), `unmatched_emails.csv`
+   and `household_email_rollup.csv` in `data/private/`. Review them. To fix a match by hand, add a row to
+   `data/private/manual_facts.csv` (`kind` = `exact`, `corroborated`, or `override`), or add a hand-checked inbox CSV
+   with a `roster_status` column. Then re-run.
+3. Merge and rebuild:
+   ```
+   FIREWISE_PASSWORD='<site password>' python3 tools/build_data.py --merge-emails data/private/email_household_matches.csv
+   ```
+   * Only **high** and **medium** confidence matches are attached to a home, with `email_confidence` and
+     `email_source_evidence`. Low-confidence guesses are never attached.
+   * Emails typed by hand into `residents.csv` are kept. Re-running is safe.
+   * Emails that can't be tied to a home (agency and city contacts excluded) go into the encrypted data as
+     "Unplaced contacts". They show in a collapsed section under the roster and are left out of Copy emails and CSV export.
+   * In the roster and map, hover over an email to see how it was matched. Medium matches carry a pill.
+4. Commit and push as usual. The pre-commit check also blocks any email, name, or evidence quote from the `data/private/` files.
+
+**Sourcing rule:** matches come only from Gene's own mail, lists that neighbors and organizers share with us, and public
+county records. Never use people-search sites, data brokers, or email guessing. The script only compares emails we already have
+against owner-of-record names. It never generates an email or an address.
+
 ### Fixing the address list (local working copy only)
 1. Edit `tools/transcription.py`, a local-only verbatim copy of the address sheet.
 2. Run:

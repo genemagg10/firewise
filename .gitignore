@@ -28,6 +28,7 @@
 !/tools/check_no_plaintext.py
 !/tools/screenshots.py
 !/tools/pre-commit
+!/tools/match_emails.py
 
 # Belt and braces - never commit these even if the rules above change:
 data/residents.csv
@@ -42,6 +43,7 @@ data/recorder.json
 data/addresses.csv
 data/geocoded.csv
 data/county_reconciliation.json
+data/private/
 data/reconciliation.md
 tools/transcription.py
 screenshots/

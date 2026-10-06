@@ -11,6 +11,12 @@
                                        # fill BLANK names from a public-record owner file (matched by sheet address,
                                        # then APN; raw name kept in owner_of_record) and append address-check flags.
                                        # Never overwrites names already there. Safe to re-run.
+  python3 tools/build_data.py --merge-emails data/private/email_household_matches.csv
+                                       # attach high/medium-confidence matched emails (output of tools/match_emails.py)
+                                       # to their homes, with per-email confidence + evidence. Emails typed by hand are kept;
+                                       # low-confidence and unplaced emails are never attached. Safe to re-run.
+                                       # If data/private/unmatched_emails.csv exists, its non-official rows go into the
+                                       # ENCRYPTED payload as "unplaced_contacts" (never attached to a home).
 
 residents.csv is the file you edit. Multi-value cells (names, emails, events_attended) are separated by ';'.
 signed_up must be yes / no / unknown (blank = unknown).  last_contact: YYYY-MM-DD.
@@ -22,11 +28,11 @@ D = lambda *p: os.path.join(ROOT, "data", *p)
 
 RES_FIELDS = ["address", "number", "street", "apn", "lat", "lng", "geocode_quality", "owner_or_resident_names",
               "source_of_name", "owner_of_record", "owner_name_confidence", "owner_as_of_date", "owner_source",
-              "emails", "phone", "signed_up", "events_attended", "last_contact", "notes", "flags"]
+              "emails", "email_confidence", "email_source_evidence", "phone", "signed_up", "events_attended", "last_contact", "notes", "flags"]
 OWNER_LABEL = "Owner of record (county deed index), may not be the current resident"
 EVENT_FIELDS = ["id", "title", "date", "time", "location", "description", "status", "link"]
 PERSON_FIELDS = ["owner_or_resident_names", "source_of_name", "owner_of_record", "owner_name_confidence",
-                 "owner_as_of_date", "owner_source", "emails", "phone", "signed_up", "events_attended", "last_contact", "notes"]
+                 "owner_as_of_date", "owner_source", "emails", "email_confidence", "email_source_evidence", "phone", "signed_up", "events_attended", "last_contact", "notes"]
 
 def read_csv(path):
     if not os.path.exists(path): return []
@@ -202,6 +208,57 @@ def merge_flags(path):
     write_csv(D("residents.csv"), rows, RES_FIELDS)
     print(f"added address-check flags to {n} homes")
 
+# ---------------- matched-email merge (tools/match_emails.py output) ----------------
+EMAIL_RANK = {"high": 3, "medium": 2, "low": 1}
+ATTACH_CONFIDENCE = ("high", "medium")          # low-confidence guesses stay in data/private, never on a home
+
+def parse_email_evidence(cell):
+    """email_source_evidence: one line per matched email, 'email | confidence | evidence'."""
+    out = []
+    for line in (cell or "").splitlines():
+        parts = [p.strip() for p in line.split(" | ", 2)]
+        if len(parts) >= 2 and "@" in parts[0]:
+            out.append({"email": parts[0].lower(), "confidence": parts[1].lower(), "source": parts[2] if len(parts) > 2 else ""})
+    return out
+
+def merge_emails(path):
+    src = read_csv(path)
+    rows = read_csv(D("residents.csv"))
+    idx = {resident_key(r["street"], r["number"]): r for r in rows}
+    found = {}                                     # resident address -> {email: (confidence, evidence)}
+    skipped_low = unplaced = 0
+    for m in src:
+        e, conf = m.get("email", "").strip().lower(), (m.get("confidence") or "").lower()
+        if conf not in ATTACH_CONFIDENCE: skipped_low += 1; continue
+        street_part = (m.get("matched_full_address") or "").split(",")[0]
+        mm = re.match(r"^(\d+)\s+(.*)$", street_part.strip())
+        r = idx.get(resident_key(mm.group(2), mm.group(1))) if mm else None
+        if not r: unplaced += 1; print("  no resident row for matched address:", street_part); continue
+        bits = [m.get("match_method", ""), m.get("evidence", "")]
+        if m.get("source_evidence"): bits.append("source: " + m["source_evidence"])
+        if m.get("note"): bits.append("note: " + m["note"])
+        ev = re.sub(r"\s+", " ", "; ".join(b for b in bits if b)).replace(" | ", " / ")
+        cur = found.setdefault(r["address"], {})
+        if e not in cur or EMAIL_RANK[conf] > EMAIL_RANK[cur[e][0]]: cur[e] = (conf, ev)
+    homes = 0
+    for r in rows:
+        old_matched = {d["email"] for d in parse_email_evidence(r.get("email_source_evidence"))}
+        manual = [x for x in split_multi(r.get("emails")) if x.lower() not in old_matched]   # typed by hand: keep
+        new = found.get(r["address"], {})
+        r["emails"] = "; ".join(dict.fromkeys(manual + sorted(new)))
+        r["email_source_evidence"] = "\n".join(f"{e} | {c} | {ev}" for e, (c, ev) in sorted(new.items()))
+        r["email_confidence"] = max((c for c, _ in new.values()), key=EMAIL_RANK.get, default="")
+        if r["emails"]: homes += 1
+    write_csv(D("residents.csv"), rows, RES_FIELDS)
+    print(f"matched emails attached: {sum(len(v) for v in found.values())} emails on {len(found)} homes "
+          f"({homes} homes now have any email); skipped {skipped_low} low/blank-confidence, {unplaced} without a roster row")
+
+def load_unplaced():
+    """Non-resident-matched contacts for the encrypted payload (never attached to a home). Officials are excluded."""
+    keep = ["email", "display_names", "roster_status", "confidence", "street_hint", "partial_clue", "reason", "source_evidence"]
+    return [{k: u.get(k, "") for k in keep} for u in read_csv(D("private", "unmatched_emails.csv"))
+            if u.get("roster_status") != "official" and u.get("email")]
+
 def build():
     res, problems = [], []
     for i, r in enumerate(read_csv(D("residents.csv")), start=2):
@@ -227,12 +284,15 @@ def build():
             "owner_of_record": r.get("owner_of_record", ""), "owner_name_confidence": (r.get("owner_name_confidence") or "").lower(),
             "owner_as_of_date": r.get("owner_as_of_date", ""), "owner_source": r.get("owner_source", ""),
             "emails": split_multi(r.get("emails")),
+            "email_confidence": (r.get("email_confidence") or "").lower(),
+            "email_details": parse_email_evidence(r.get("email_source_evidence")),
             "phone": r.get("phone", ""), "signed_up": su, "events_attended": split_multi(r.get("events_attended")),
             "last_contact": lc, "notes": r.get("notes", ""), "flags": r.get("flags", ""),
         })
     events = [e for e in read_csv(D("events.csv")) if e.get("title")]
     meta = {"title": "Las Trampas Firewise Neighborhood", "area": "Evacuation Area 016, Lafayette, CA",
             "sheet_total": 198, "generated": datetime.datetime.now().isoformat(timespec="minutes")}
+    unplaced = load_unplaced()
     json.dump(res, open(D("residents.json"), "w"), indent=1)          # PLAINTEXT - git-ignored, never published
     json.dump(events, open(D("events.json"), "w"), indent=1)
     if os.path.exists(D("site-data.js")): os.remove(D("site-data.js"))  # old plaintext bundle (pre-encryption)
@@ -242,18 +302,21 @@ def build():
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         from encrypt_data import encrypt_payload, decrypt_payload, get_password
         pw = get_password()
-        env = encrypt_payload({"residents": res}, pw)
-        assert decrypt_payload(env, pw)["residents"] == res            # round-trip self-check
+        payload = {"residents": res, "unplaced_contacts": unplaced}
+        env = encrypt_payload(payload, pw)
+        assert decrypt_payload(env, pw) == payload                     # round-trip self-check
         json.dump(env, open(D("residents.enc.json"), "w"))
         # public-data.js: public meta + events + the ENCRYPTED residents blob, so pages also work from file://
         with open(D("public-data.js"), "w") as f:
             f.write("/* GENERATED by tools/build_data.py - residents are encrypted (AES-256-GCM). Edit data/*.csv instead. */\n")
             f.write("window.FIREWISE_PUBLIC = " + json.dumps({"meta": meta, "events": events, "residents_enc": env}) + ";\n")
-        print(f"built {len(res)} residents (encrypted -> data/residents.enc.json, data/public-data.js), {len(events)} events")
+        print(f"built {len(res)} residents, {sum(1 for r in res if r['emails'])} with email, {len(unplaced)} unplaced contacts "
+              f"(encrypted -> data/residents.enc.json, data/public-data.js), {len(events)} events")
     for p in problems: print("  WARNING:", p)
 
 if __name__ == "__main__":
     if "--seed" in sys.argv: seed()
     if "--merge-owners" in sys.argv: merge_owners(sys.argv[sys.argv.index("--merge-owners") + 1])
     if "--merge-flags" in sys.argv: merge_flags(sys.argv[sys.argv.index("--merge-flags") + 1])
+    if "--merge-emails" in sys.argv: merge_emails(sys.argv[sys.argv.index("--merge-emails") + 1])
     build()
