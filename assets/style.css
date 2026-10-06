@@ -39,6 +39,7 @@ h3{font-size:1.05rem;margin:0 0 .3rem}
 .stat small{font-size:.9rem;font-weight:500;color:var(--muted)}
 .muted{color:var(--muted)}
 .btn{appearance:none;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:8px;padding:.5rem .9rem;font:inherit;font-weight:600;cursor:pointer}
+a.btn{text-decoration:none;display:inline-block}
 .btn.secondary{background:#fff;color:var(--accent)}
 .btn:hover{filter:brightness(1.08)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
