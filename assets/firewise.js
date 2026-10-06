@@ -54,57 +54,135 @@
     sessionStorage.setItem(keyName(env), b64e(await crypto.subtle.exportKey("raw", key)));
     return data;
   }
+  const UI_KEY = "firewise-ui";
+  function markAdmin() { sessionStorage.setItem(UI_KEY, "admin"); }
   function lock() {
+    sessionStorage.removeItem(UI_KEY);
     Object.keys(sessionStorage).filter(k => k.startsWith("firewise-key-")).forEach(k => sessionStorage.removeItem(k));
-    location.reload();
+    location.href = "index.html";
+  }
+  function viewPublic() {
+    sessionStorage.removeItem(UI_KEY);
+    location.href = "index.html";
   }
 
   // ---- lock screen ----
   function showLockScreen(env, { dismissable = false } = {}) {
     return new Promise((resolve, reject) => {
+      document.querySelectorAll(".lock-overlay").forEach(n => n.remove());
       const wrap = document.createElement("div");
       wrap.className = "lock-overlay";
       wrap.innerHTML = `
         <div class="lock-card" role="dialog" aria-modal="true" aria-labelledby="lock-title" aria-describedby="lock-desc">
           <div class="lock-icon" aria-hidden="true">&#128274;</div>
-          <h2 id="lock-title">Organizers only</h2>
-          <p id="lock-desc">The map and roster contain neighbors&rsquo; contact details and are encrypted. Enter the site password to unlock them for this browser session.</p>
+          <h2 id="lock-title">Organizer sign-in</h2>
+          <p id="lock-desc">Household names, emails, and the map are encrypted. Enter the site password to open organizer tools for this browser session.</p>
           <form>
             <label for="lock-pw">Password</label>
             <input id="lock-pw" type="password" autocomplete="current-password" required>
-            <p class="lock-error" role="alert" aria-live="assertive"></p>
+            <p class="lock-error" id="lock-err" role="alert" aria-live="assertive"></p>
             <div class="lock-actions">
               <button class="btn" type="submit">Unlock</button>
-              ${dismissable ? '<button class="btn secondary" type="button" data-cancel>Not now</button>' : '<a class="btn secondary" href="events.html">Events &amp; resources</a>'}
+              ${dismissable ? '<button class="btn secondary" type="button" data-cancel>Not now</button>' : '<a class="btn secondary" href="index.html">Community site</a>'}
             </div>
           </form>
-          <p class="lock-note">Events &amp; resources are public. Need the password? Ask the neighborhood organizer.</p>
+          <p class="lock-note">The community site is public. Need the password? Ask a neighborhood organizer.</p>
         </div>`;
       document.body.appendChild(wrap);
       document.body.classList.add("locked");
       const form = wrap.querySelector("form"), input = wrap.querySelector("#lock-pw"), err = wrap.querySelector(".lock-error"),
             btn = wrap.querySelector("button[type=submit]");
+      input.setAttribute("aria-describedby", "lock-desc lock-err");
+      const close = (how) => {
+        document.removeEventListener("keydown", onKey);
+        wrap.remove();
+        document.body.classList.remove("locked");
+        if (how === "ok") return;
+        reject(new Error("locked"));
+      };
+      function onKey(ev) { if (ev.key === "Escape" && dismissable) close("cancel"); }
+      document.addEventListener("keydown", onKey);
       setTimeout(() => input.focus(), 30);
       form.addEventListener("submit", async ev => {
-        ev.preventDefault(); err.textContent = ""; btn.disabled = true; btn.textContent = "Unlocking\u2026";
+        ev.preventDefault(); err.textContent = ""; input.removeAttribute("aria-invalid");
+        btn.disabled = true; btn.textContent = "Unlocking\u2026";
         try {
           const data = await unlock(input.value, env);
+          document.removeEventListener("keydown", onKey);
           wrap.remove(); document.body.classList.remove("locked"); resolve(data);
         } catch (e) {
           err.textContent = "That password didn\u2019t work. Please check it and try again.";
+          input.setAttribute("aria-invalid", "true");
           input.select(); btn.disabled = false; btn.textContent = "Unlock";
         }
       });
       const c = wrap.querySelector("[data-cancel]");
-      if (c) c.onclick = () => { wrap.remove(); document.body.classList.remove("locked"); reject(new Error("locked")); };
+      if (c) c.onclick = () => close("cancel");
     });
   }
 
   function addLockButton() {
     const ul = document.querySelector("nav.main ul");
     if (!ul || ul.querySelector(".lock-link")) return;
-    ul.insertAdjacentHTML("beforeend", '<li><button type="button" class="lock-link" title="Forget the password on this device">Lock</button></li>');
+    ul.insertAdjacentHTML("beforeend", '<li><button type="button" class="lock-link" title="Lock and return to the community site">Lock</button></li>');
     ul.querySelector(".lock-link").onclick = lock;
+  }
+
+  async function sessionData(env) {
+    if (!env) return null;
+    const data = await trySessionKey(env);
+    if (!data || !data.residents) return null;
+    data.residents.forEach(r => { r._status = statusOf(r); r._noinfo = isNoInfo(r); });
+    return data;
+  }
+
+  async function openAdmin(env) {
+    try {
+      let blob = env;
+      if (!blob && window.FIREWISE_PUBLIC) blob = window.FIREWISE_PUBLIC.residents_enc;
+      if (!blob) blob = await fetch("data/residents.enc.json").then(r => r.ok ? r.json() : null).catch(() => null);
+      if (!blob) return;
+      if (!(await trySessionKey(blob))) await showLockScreen(blob, { dismissable: true });
+    } catch (e) { return; }
+    markAdmin();
+    location.href = "index.html";
+  }
+
+  function mountCornerLock(env) {
+    const btn = document.getElementById("cornerLock");
+    if (!btn || btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => openAdmin(env));
+  }
+
+  function parseDay(s) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || "");
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  }
+  function fmtDay(d) {
+    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+  }
+  // An event is past the day after its end_date (or date).
+  function splitEvents(events, now) {
+    const today = now ? new Date(now) : new Date();
+    today.setHours(0, 0, 0, 0);
+    const isPast = e => { const last = parseDay(e.end_date) || parseDay(e.date); return !!(last && last < today); };
+    const byDate = (a, b) => (a.date || "").localeCompare(b.date || "");
+    const list = events || [];
+    return { upcoming: list.filter(e => !isPast(e)).sort(byDate), past: list.filter(isPast).sort(byDate).reverse() };
+  }
+  function eventCardHTML(e, past) {
+    const d = parseDay(e.date), end = parseDay(e.end_date);
+    const when = d ? fmtDay(d) + (end && end > d ? " \u2013 " + fmtDay(end) : "") : esc(e.date);
+    return `<article class="card event${past ? " past" : ""}">
+      <div class="when">${when}${e.time ? " \u00b7 " + esc(e.time) : ""}${past ? ' <span class="pill unknown">Past</span>' : ""}</div>
+      <h3>${esc(e.title)}</h3>
+      ${e.location ? `<div class="muted">${esc(e.location)}</div>` : ""}
+      ${e.cost ? `<div class="cost">${esc(e.cost)}</div>` : ""}
+      <p>${esc(e.description)}</p>
+      ${e.organizer ? `<div class="src">${esc(e.organizer)}</div>` : ""}
+      ${e.link ? `<a href="${esc(e.link)}" target="_blank" rel="noopener noreferrer">Details</a>` : ""}
+    </article>`;
   }
 
   /* load({ requireResidents: true })  -> prompts until unlocked (map, roster)
@@ -132,6 +210,7 @@
       out.unplaced = data.unplaced_contacts || [];
       out.corrections = data.address_corrections || [];
       out.residents.forEach(r => { r._status = statusOf(r); r._noinfo = isNoInfo(r); });
+      markAdmin();
       addLockButton();
     }
     out._env = env;
@@ -174,7 +253,10 @@
       ta.remove(); return ok;
     }
   }
-  function setGenerated(meta) { const g = document.getElementById("gen"); if (g) g.textContent = (meta && meta.generated) || ""; }
+  function setGenerated(meta) {
+    const text = (meta && meta.generated) || "";
+    document.querySelectorAll("[data-generated], #gen").forEach(el => { el.textContent = text; });
+  }
 
-  window.Firewise = { STATUS, EMAIL_COLORS, NOINFO, isNoInfo, statusOf, load, loadPublic, showLockScreen, addLockButton, counts, esc, emailLinks, toast, copyText, setGenerated, lock };
+  window.Firewise = { STATUS, EMAIL_COLORS, NOINFO, isNoInfo, statusOf, load, loadPublic, showLockScreen, addLockButton, counts, esc, emailLinks, toast, copyText, setGenerated, lock, viewPublic, openAdmin, mountCornerLock, sessionData, splitEvents, eventCardHTML, markAdmin };
 })();

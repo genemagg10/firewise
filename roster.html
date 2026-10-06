@@ -5,11 +5,13 @@
 <title>Roster &middot; Las Trampas Firewise</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="assets/style.css">
-</head><body><a class="skip" href="#content">Skip to content</a>
+</head><body class="organizer-page"><a class="skip" href="#content">Skip to content</a>
 <header class="site"><div class="wrap">
-  <div class="brand"><strong>Las Trampas Firewise Neighborhood</strong><span>Evacuation Area 016 &middot; Lafayette, CA</span></div>
-  <nav class="main" aria-label="Main"><ul><li><a href="index.html">Overview</a></li><li><a href="map.html">Map</a></li><li><a href="roster.html" aria-current="page">Roster</a></li><li><a href="events.html">Events &amp; Resources</a></li></ul></nav>
-</div></header><div class="private-banner" role="note">Private: contains neighbors&rsquo; contact info. Do not post publicly or share the link outside the organizing team.</div>
+  <a class="brand" href="index.html"><strong>Las Trampas Firewise</strong><span>Evacuation Area 016 &middot; Organizer roster</span></a>
+  <nav class="main" aria-label="Main"><ul><li><a href="index.html">Dashboard</a></li><li><a href="map.html">Map</a></li><li><a href="roster.html" aria-current="page">Roster</a></li></ul></nav>
+</div></header>
+<p class="organizer-wait">Organizer tools are locked. <a href="index.html">Back to the community site</a>.</p>
+<div class="private-banner" role="note">Private: contains neighbors&rsquo; contact info. Do not post publicly or share the link outside the organizing team.</div>
 <main id="content">
   <h1>Roster</h1>
   <p class="lede">One row per home. Click a column heading to sort. Filters combine. &ldquo;Copy emails&rdquo; and &ldquo;Export CSV&rdquo; use only the rows currently shown.</p>
@@ -54,7 +56,7 @@
     <p class="muted" style="font-size:.85rem">Not included in Copy emails or Export CSV. Add one to a home only once you know where they live.</p>
     <div class="table-wrap"><table><thead><tr><th>Email</th><th>Name(s)</th><th>Why unplaced</th><th>Street hint</th><th>Clue</th></tr></thead><tbody id="unplacedBody"></tbody></table></div>
   </details>
-</main><footer class="site">Las Trampas Firewise Neighborhood &middot; private organizer tool &middot; data updated <span id="gen"></span></footer><script src="data/public-data.js"></script>
+</main><footer class="site">Las Trampas Firewise Neighborhood &middot; private organizer tool &middot; data updated <span data-generated></span></footer><script src="data/public-data.js"></script>
 <script src="assets/firewise.js"></script>
 <script>
 const S = Firewise.STATUS, esc = Firewise.esc;
@@ -156,6 +158,7 @@ document.getElementById("csv").onclick = () => {
   Firewise.toast(`Exported ${view.length} rows`);
 };
 Firewise.load().then(({ meta, residents, unplaced, corrections }) => {
+  document.body.classList.add("unlocked");
   Firewise.setGenerated(meta);
   rows = residents;
   const c = Firewise.counts(rows);
@@ -186,6 +189,10 @@ Firewise.load().then(({ meta, residents, unplaced, corrections }) => {
   document.getElementById("reset").onclick = () => { document.querySelectorAll(".controls input[type=checkbox]").forEach(i => i.checked = false);
     document.querySelectorAll(".controls select").forEach(s => s.value = ""); document.getElementById("q").value = ""; render(); };
   render();
-}).catch(e => { tbody.innerHTML = `<tr><td>${esc(e.message)}</td></tr>`; });
+}).catch(e => {
+  if (e && e.message === "locked") return;
+  document.body.classList.add("unlocked");
+  tbody.innerHTML = `<tr><td>${esc(e.message)}</td></tr>`;
+});
 </script>
 </body></html>

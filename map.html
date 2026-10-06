@@ -6,11 +6,13 @@
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
-</head><body><a class="skip" href="#content">Skip to content</a>
+</head><body class="organizer-page"><a class="skip" href="#content">Skip to content</a>
 <header class="site"><div class="wrap">
-  <div class="brand"><strong>Las Trampas Firewise Neighborhood</strong><span>Evacuation Area 016 &middot; Lafayette, CA</span></div>
-  <nav class="main" aria-label="Main"><ul><li><a href="index.html">Overview</a></li><li><a href="map.html" aria-current="page">Map</a></li><li><a href="roster.html">Roster</a></li><li><a href="events.html">Events &amp; Resources</a></li></ul></nav>
-</div></header><div class="private-banner" role="note">Private: contains neighbors&rsquo; contact info. Do not post publicly or share the link outside the organizing team.</div>
+  <a class="brand" href="index.html"><strong>Las Trampas Firewise</strong><span>Evacuation Area 016 &middot; Organizer map</span></a>
+  <nav class="main" aria-label="Main"><ul><li><a href="index.html">Dashboard</a></li><li><a href="map.html" aria-current="page">Map</a></li><li><a href="roster.html">Roster</a></li></ul></nav>
+</div></header>
+<p class="organizer-wait">Organizer tools are locked. <a href="index.html">Back to the community site</a>.</p>
+<div class="private-banner" role="note">Private: contains neighbors&rsquo; contact info. Do not post publicly or share the link outside the organizing team.</div>
 <main id="content" class="full">
   <div class="map-layout" id="layout">
     <aside class="map-side" aria-label="Map filters and summary">
@@ -45,16 +47,19 @@
 <script src="assets/firewise.js"></script>
 <script>
 const S = Firewise.STATUS, esc = Firewise.esc;
-const map = L.map("map", { scrollWheelZoom: true, zoomSnap: 0.25 });
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+let map;
 const E = Firewise.EMAIL_COLORS, NI = Firewise.NOINFO;
 let colorBy = localStorage.getItem("fw-colorby") || "email";
 document.querySelector(`input[name=colorby][value=${colorBy}]`).checked = true;
-const legend = L.control({ position: "bottomright" });
-legend.onAdd = () => { const d = L.DomUtil.create("div", "legend-box"); d.id = "legend"; return d; };
-legend.addTo(map);
+function initMap() {
+  map = L.map("map", { scrollWheelZoom: true, zoomSnap: 0.25 });
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+  const legend = L.control({ position: "bottomright" });
+  legend.onAdd = () => { const d = L.DomUtil.create("div", "legend-box"); d.id = "legend"; return d; };
+  legend.addTo(map);
+}
 function styleFor(r) {
   const approx = r.approximate;
   if (r._noinfo) return { radius: 8, weight: 2.5, color: NI.stroke, dashArray: approx ? "3 3" : null, fillColor: NI.color, fillOpacity: 0.95 };
@@ -78,7 +83,10 @@ function renderLegend(c) {
   document.getElementById("legend").innerHTML = h;
 }
 
-Firewise.load().then(({ meta, residents }) => {
+Firewise.load().then(async ({ meta, residents }) => {
+  document.body.classList.add("unlocked");
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  initMap();
   Firewise.setGenerated(meta);
   const T = residents.length;   // actual homes in the dataset (the printed sheet had meta.sheet_total entries)
   const streets = [...new Set(residents.map(r => r.street))].sort();
@@ -154,6 +162,11 @@ Firewise.load().then(({ meta, residents }) => {
     document.getElementById("noInfoOnly").checked = false; document.querySelectorAll('input[name=st]').forEach(i => i.checked = true);
     apply(); map.fitBounds(layer.getBounds(), { padding: [30, 30] }); };
   apply();
-}).catch(e => { document.getElementById("summary").textContent = e.message; });
+}).catch(e => {
+  if (e && e.message === "locked") return;
+  document.body.classList.add("unlocked");
+  const s = document.getElementById("summary");
+  if (s) s.textContent = e.message;
+});
 </script>
 </body></html>

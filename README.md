@@ -1,15 +1,28 @@
-# Las Trampas Firewise Neighborhood: organizer site
+# Las Trampas Firewise Neighborhood
 
-Evacuation Area 016, Lafayette, CA. A static site (no server code) published with GitHub Pages.
+Evacuation Area 016, Lafayette, CA. A static community website (no server code) published with GitHub Pages.
 
-## What's public and what's encrypted
-| Public (anyone with the link) | Password-protected (encrypted) |
+Neighbors get a public site. Organizer tools stay behind the site password.
+
+## Public site and organizer tools
+| Neighbors see | Organizers, after the password |
 |---|---|
-| `events.html`: upcoming events and resources | `map.html`: every home, with names, emails, and status |
-| `index.html` page shell (counts appear only after unlock) | `roster.html`: the table, Copy emails, and CSV export |
-| Site code (`assets/`, `tools/`) | All household data: addresses, map positions, names, emails, phones, sign-up status, events attended, notes, owner names |
+| `index.html`: community homepage (events, preparedness, how to take part) | Dashboard on `index.html`: counts and data-quality notes |
+| `action-plan.html`: Community Wildfire Action Plan 2027–2029, Year 1 | `map.html`: every home, with names, emails, and status |
+| `events.html`: upcoming events and resources | `roster.html`: the table, Copy emails, and CSV export |
 
-**How the protection works.** Household data is committed **only** as ciphertext (`data/residents.enc.json`, plus a copy inside
+Public pages do not link to the map, roster, or dashboard. A small lock button in the bottom corner opens a password prompt. The right password switches this browser tab into the organizer view. **Lock** forgets the key and returns to the community site. A wrong password shows an error and leaves the data locked. Opening `map.html` or `roster.html` directly, while locked, shows that same prompt and not household data.
+
+**Hiding those links is obscurity for the UI. Encryption is what protects the data.** Household data is committed **only** as ciphertext (`data/residents.enc.json`, plus a copy inside `data/public-data.js`). Anyone can download the ciphertext. It cannot be read without the password.
+
+The homepage names the organizers (Tom Williams, lead; Patrick Lupardus; Ray Stephens; Gene Maggio) and does not list their addresses, personal emails, or phone numbers. The City of Lafayette Firewise contact already published on the old events page stays on the contact section.
+
+### Community Wildfire Action Plan
+`action-plan.html` is the public Year 1 plan for **Las Trampas LAF-016**, covering **2027–2029**. The wording follows the Firewise USA three-year action plan form. Two obvious slips were corrected: "seasonal fire risks" and "sign up for the" Community Warning System. The participation target (from 24 households to at least 34, 17%, by year end 2027) is called out on the homepage and on the plan. Edit `action-plan.html` to change the plan. Do not put household data in that file. The form photos are not part of the site.
+
+## What's encrypted
+
+**How the protection works.** Household data is stored **only** as ciphertext (`data/residents.enc.json`, plus a copy inside
 `data/public-data.js`). It is encrypted with AES-256-GCM, and the key is derived from the site password with PBKDF2-SHA256
 (600,000 iterations, random salt and IV, both regenerated on every build). The browser derives the same key with WebCrypto and
 decrypts in the page. The key is kept in `sessionStorage`, so it is forgotten when the tab or browser closes; the **Lock** button forgets it immediately.
