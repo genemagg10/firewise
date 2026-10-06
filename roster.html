@@ -13,6 +13,7 @@
 <main id="content">
   <h1>Roster</h1>
   <p class="lede">One row per home. Click a column heading to sort. Filters combine. &ldquo;Copy emails&rdquo; and &ldquo;Export CSV&rdquo; use only the rows currently shown.</p>
+  <p class="muted" style="font-size:.9rem;margin-top:-.5rem">Names marked <em>Owner of record</em> come from the Contra Costa County deed index. They show who holds title (often a trust), which may not be who lives there now. Confidence reflects how cleanly the deed record matched the address.</p>
   <div class="card">
     <div class="controls" role="search">
       <div class="field"><label for="q">Search</label><input type="search" id="q" placeholder="Name, email, address, notes" autocomplete="off" style="min-width:16rem"></div>
@@ -21,6 +22,8 @@
       <label class="check"><input type="checkbox" id="notSigned"> Not signed up</label>
       <label class="check"><input type="checkbox" id="neverAttended"> Never attended</label>
       <label class="check"><input type="checkbox" id="hasEmail"> Has email</label>
+      <label class="check"><input type="checkbox" id="noName"> No name yet</label>
+      <div class="field"><label for="conf">Name confidence</label><select id="conf"><option value="">Any</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div>
       <label class="check"><input type="checkbox" id="flagged"> Flagged only</label>
       <button class="btn secondary" type="button" id="reset">Reset</button>
     </div>
@@ -44,6 +47,8 @@
 const S = Firewise.STATUS, esc = Firewise.esc;
 const COLS = [
   { k: "names", t: "Name(s)", v: r => r.owner_or_resident_names.join("; ") },
+  { k: "conf", t: "Name confidence", v: r => r.owner_or_resident_names.length ? (r.owner_name_confidence || (r.is_owner_of_record ? "" : "confirmed")) : "",
+    sort: r => ({ confirmed: "0", high: "1", medium: "2", low: "3" }[r.owner_name_confidence || (r.owner_or_resident_names.length && !r.is_owner_of_record ? "confirmed" : "")] || "") },
   { k: "email", t: "Email", v: r => r.emails.join("; ") },
   { k: "address", t: "Address", v: r => r.address, sort: r => r.street + " " + String(r.number).padStart(6, "0") },
   { k: "street", t: "Street", v: r => r.street, sort: r => r.street + " " + String(r.number).padStart(6, "0") },
@@ -52,6 +57,7 @@ const COLS = [
   { k: "last", t: "Last contact", v: r => r.last_contact },
   { k: "status", t: "Status", v: r => S[r._status].label },
 ];
+const OWNER_LABEL = "Owner of record (county deed index), may not be the current resident";
 let sortKey = "address", sortDir = 1, rows = [], view = [];
 const params = new URLSearchParams(location.search);
 const thead = document.querySelector("#tbl thead tr"), tbody = document.querySelector("#tbl tbody");
@@ -64,6 +70,8 @@ function cell(r, c) {
   const v = c.v(r);
   if (c.k === "email") return r.emails.length ? r.emails.map(e => `<a href="mailto:${esc(e)}">${esc(e)}</a>`).join("<br>") : "";
   if (c.k === "status") return `<span class="pill ${r._status}">${esc(v)}</span>`;
+  if (c.k === "names") return esc(v) + (r.is_owner_of_record ? `<div class="owner-label" title="${esc(r.owner_of_record)}${r.owner_as_of_date ? " \u00b7 deed recorded " + esc(r.owner_as_of_date) : ""}">${esc(OWNER_LABEL)}</div>` : "");
+  if (c.k === "conf") return v ? `<span class="pill conf-${esc(v)}">${esc(v)}</span>` : "";
   if (c.k === "address") return esc(v) + (r.flags ? ` <span class="pill flag" title="${esc(r.flags)}">flag</span>` : "") + (r.approximate ? ' <span class="muted" title="approximate map pin">&#8776;</span>' : "");
   return esc(v);
 }
@@ -72,6 +80,7 @@ function filtered() {
   const street = document.getElementById("street").value, status = document.getElementById("status").value;
   const ns = document.getElementById("notSigned").checked, na = document.getElementById("neverAttended").checked;
   const he = document.getElementById("hasEmail").checked, fl = document.getElementById("flagged").checked;
+  const nn = document.getElementById("noName").checked, conf = document.getElementById("conf").value;
   return rows.filter(r => {
     if (street && r.street !== street) return false;
     if (status && r._status !== status) return false;
@@ -79,7 +88,9 @@ function filtered() {
     if (na && r.events_attended.length) return false;
     if (he && !r.emails.length) return false;
     if (fl && !r.flags) return false;
-    if (q) { const h = [r.address, r.owner_or_resident_names.join(" "), r.emails.join(" "), r.notes, r.phone, r.flags].join(" ").toLowerCase(); if (!h.includes(q)) return false; }
+    if (nn && r.owner_or_resident_names.length) return false;
+    if (conf && (r.owner_name_confidence || "") !== conf) return false;
+    if (q) { const h = [r.address, r.owner_or_resident_names.join(" "), r.owner_of_record, r.apn, r.emails.join(" "), r.notes, r.phone, r.flags].join(" ").toLowerCase(); if (!h.includes(q)) return false; }
     return true;
   });
 }
@@ -104,10 +115,11 @@ document.getElementById("copy").onclick = async () => {
   if (!ok) prompt("Copy these emails:", emails.join(", "));
 };
 document.getElementById("csv").onclick = () => {
-  const head = ["Name(s)", "Email(s)", "Address", "Street", "Signed up", "Events attended", "Last contact", "Status", "Phone", "Notes", "Flags"];
+  const head = ["Name(s)", "Name source", "Owner of record (raw)", "Name confidence", "Deed recorded", "APN", "Email(s)", "Address", "Street", "Signed up", "Events attended", "Last contact", "Status", "Phone", "Notes", "Flags"];
   const q = s => '"' + String(s ?? "").replace(/"/g, '""') + '"';
-  const lines = [head.map(q).join(",")].concat(view.map(r => [r.owner_or_resident_names.join("; "), r.emails.join("; "), r.address, r.street,
-    r.signed_up, r.events_attended.join("; "), r.last_contact, S[r._status].label, r.phone, r.notes, r.flags].map(q).join(",")));
+  const lines = [head.map(q).join(",")].concat(view.map(r => [r.owner_or_resident_names.join("; "), r.source_of_name, r.owner_of_record, r.owner_name_confidence,
+    r.owner_as_of_date, r.apn, r.emails.join("; "), r.address, r.street,
+    r.signed_up === "unknown" ? "" : r.signed_up, r.events_attended.join("; "), r.last_contact, S[r._status].label, r.phone, r.notes, r.flags].map(q).join(",")));
   const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
   const dt = new Date(); a.download = "firewise-roster-" + dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0") + ".csv"; document.body.appendChild(a); a.click(); a.remove();

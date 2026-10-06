@@ -68,7 +68,9 @@ Firewise.load().then(({ meta, residents }) => {
     const emails = r.emails.map(e => `<a href="mailto:${esc(e)}">${esc(e)}</a>`).join("<br>");
     m.bindPopup(`<div class="popup"><div class="popup-addr">${esc(r.address)}</div>
       <span class="pill ${r._status}">${S[r._status].label}</span>
-      <dl><dt>Names</dt><dd>${names}</dd><dt>Email</dt><dd>${emails}</dd>
+      <dl><dt>Names</dt><dd>${names}${r.is_owner_of_record ? `<div class="owner-label">Owner of record (county deed index), may not be the current resident</div>` : ""}</dd>
+      ${r.owner_name_confidence ? `<dt>Name confidence</dt><dd><span class="pill conf-${esc(r.owner_name_confidence)}">${esc(r.owner_name_confidence)}</span>${r.owner_as_of_date ? ` <small class="muted">deed recorded ${esc(r.owner_as_of_date)}</small>` : ""}</dd>` : ""}
+      ${r.owner_of_record ? `<dt>On deed</dt><dd><small>${esc(r.owner_of_record)}</small></dd>` : ""}<dt>Email</dt><dd>${emails}</dd>
       <dt>Phone</dt><dd>${esc(r.phone)}</dd>
       <dt>Signed up</dt><dd>${r.signed_up === "unknown" ? "" : esc(r.signed_up)}</dd>
       <dt>Events</dt><dd>${r.events_attended.map(esc).join("; ")}</dd>
@@ -91,7 +93,7 @@ Firewise.load().then(({ meta, residents }) => {
     let shown = [];
     markers.forEach(m => {
       const r = m._r;
-      const hay = (r.address + " " + r.owner_or_resident_names.join(" ") + " " + r.emails.join(" ")).toLowerCase();
+      const hay = (r.address + " " + r.owner_or_resident_names.join(" ") + " " + r.owner_of_record + " " + r.emails.join(" ")).toLowerCase();
       const ok = st.has(r._status) && (!street || r.street === street) && (!q || hay.includes(q)) && (!approxOnly || r.approximate || r.flags);
       if (ok) { layer.addLayer(m); shown.push(r); } else layer.removeLayer(m);
     });
@@ -100,7 +102,7 @@ Firewise.load().then(({ meta, residents }) => {
     Object.keys(S).forEach(k => document.getElementById("n-" + k).textContent = `(${c[k]})`);
     document.getElementById("summary").innerHTML =
       `<div><span class="big">${c.signedYes}</span> of ${street ? c.total + " homes on " + esc(street) : T} signed up</div>
-       <div>${c.anyAttended} attended a past event &middot; ${c.withEmail} with email</div>
+       <div>${c.anyAttended} attended a past event &middot; ${c.withEmail} with email &middot; ${c.withName} with a name</div>
        <div class="muted">Showing ${shown.length} of ${residents.length} pins</div>`;
   }
   ["q", "street", "approxOnly"].forEach(id => document.getElementById(id).addEventListener("input", apply));

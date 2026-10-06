@@ -52,9 +52,16 @@ Then rebuild and commit as above.
 
 ### Public-record owner names (optional)
 ```
-FIREWISE_PASSWORD='<site password>' python3 tools/build_data.py --merge-owners data/link_owner_names.csv
+FIREWISE_PASSWORD='<site password>' python3 tools/build_data.py --merge-owners data/link_owner_names.csv --merge-flags data/link_address_flags.csv
 ```
-This fills only blank name cells (matched by parcel number, then by address). Each name is labeled as a public-record owner, who may not be the resident.
+* Fills only blank name cells (matched by sheet address, then by parcel number). Names you typed yourself are never overwritten.
+* The raw deed-index text is kept in `owner_of_record`; the Name(s) column gets a best-effort friendly version
+  (e.g. `DOE JOHN & JANE TRE` becomes `John & Jane Doe (trustees)`; trusts and LLCs stay as written, in title case).
+* Every such name is labeled "Owner of record (county deed index), may not be the current resident" in the roster and map.
+* Also stored: `apn`, `owner_name_confidence` (high / medium / low), `owner_as_of_date` (deed recording date), `owner_source`.
+* Address-check flags and lookup notes are appended to each home's `flags`. Re-running is safe (no duplicates).
+* Roster: the "No name yet" checkbox and "Name confidence" filter show what is still missing or uncertain.
+* `python3 tools/check_no_plaintext.py --tracked` scans every tracked file (not just staged ones) for names, emails, phones and the password.
 
 ### Fixing the address list (local working copy only)
 1. Edit `tools/transcription.py`, a local-only verbatim copy of the address sheet.

@@ -124,3 +124,8 @@ body.locked{overflow:hidden}
 .hood p{margin:.3rem 0 .6rem}
 ul.tight{margin:.3rem 0 .6rem;padding-left:1.2rem}
 ul.tight li{margin:.25rem 0}
+.owner-label{font-size:.75rem;color:var(--muted);font-style:italic;line-height:1.25;margin-top:.15rem}
+.pill.conf-high{background:#e3f4e8;color:#14612b;border-color:#b7e0c3}
+.pill.conf-medium{background:#fff4e0;color:#8a4b08;border-color:#f1d9b0}
+.pill.conf-low{background:#fdebe1;color:#9a3412;border-color:#f6c6ab}
+.pill.conf-confirmed{background:#e3eefb;color:#174a85;border-color:#b9d2f0}

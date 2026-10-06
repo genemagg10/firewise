@@ -7,9 +7,10 @@
   python3 tools/build_data.py --no-encrypt   # plaintext residents.json only (local tooling; site won't update)
   python3 tools/build_data.py --seed   # (re)create residents.csv rows from geocoded.csv, KEEPING any names,
                                        # emails, status etc. already typed into residents.csv, then build.
-  python3 tools/build_data.py --merge-owners data/link_owner_names.csv
-                                       # fill BLANK owner_or_resident_names from a public-record owner file
-                                       # (matched by APN, then by address). Never overwrites names already there.
+  python3 tools/build_data.py --merge-owners data/link_owner_names.csv --merge-flags data/link_address_flags.csv
+                                       # fill BLANK names from a public-record owner file (matched by sheet address,
+                                       # then APN; raw name kept in owner_of_record) and append address-check flags.
+                                       # Never overwrites names already there. Safe to re-run.
 
 residents.csv is the file you edit. Multi-value cells (names, emails, events_attended) are separated by ';'.
 signed_up must be yes / no / unknown (blank = unknown).  last_contact: YYYY-MM-DD.
@@ -20,10 +21,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D = lambda *p: os.path.join(ROOT, "data", *p)
 
 RES_FIELDS = ["address", "number", "street", "apn", "lat", "lng", "geocode_quality", "owner_or_resident_names",
-              "source_of_name", "emails", "phone", "signed_up", "events_attended", "last_contact", "notes", "flags"]
+              "source_of_name", "owner_of_record", "owner_name_confidence", "owner_as_of_date", "owner_source",
+              "emails", "phone", "signed_up", "events_attended", "last_contact", "notes", "flags"]
+OWNER_LABEL = "Owner of record (county deed index), may not be the current resident"
 EVENT_FIELDS = ["id", "title", "date", "time", "location", "description", "status", "link"]
-PERSON_FIELDS = ["owner_or_resident_names", "source_of_name", "emails", "phone", "signed_up",
-                 "events_attended", "last_contact", "notes"]
+PERSON_FIELDS = ["owner_or_resident_names", "source_of_name", "owner_of_record", "owner_name_confidence",
+                 "owner_as_of_date", "owner_source", "emails", "phone", "signed_up", "events_attended", "last_contact", "notes"]
 
 def read_csv(path):
     if not os.path.exists(path): return []
@@ -59,33 +62,145 @@ def seed():
     write_csv(D("residents.csv"), rows, RES_FIELDS)
     print(f"seeded data/residents.csv with {len(rows)} rows")
 
-def norm_addr(a):
-    a = (a or "").lower().split(",")[0]
-    for k, v in {" court": " ct", " drive": " dr", " circle": " cir", " road": " rd", " lane": " ln", " way": " way", " manor": " mnr"}.items():
-        a = a.replace(k, v)
-    return " ".join(a.split())
+# ---------------- public-record owner merge ----------------
+SUFFIX_ABBR = {"CT": "Court", "DR": "Drive", "CIR": "Circle", "RD": "Road", "LN": "Lane", "WAY": "Way", "MNR": "Manor",
+               "MANOR": "Manor", "COURT": "Court", "DRIVE": "Drive", "CIRCLE": "Circle", "ROAD": "Road", "LANE": "Lane"}
+STREET_ALIASES = {"los palo manor": "los palos manor", "via los colrados": "via los colorados", "olivera lane": "oliveira lane"}
+
+def norm_street(label):
+    w = label.replace(".", "").split()
+    if w and w[-1].upper() in SUFFIX_ABBR: w[-1] = SUFFIX_ABBR[w[-1].upper()]
+    st = " ".join(w).lower()
+    return STREET_ALIASES.get(st, st)
+
+def parse_input_address(label):
+    """'Glenside Cir 74(?)' / 'Olivera Ln 1-4' / 'Via Los Colrados 3549/3550' -> (street_norm, [numbers])"""
+    m = re.match(r"^(.*?)\s+([\d/\-\s]+)(\(\?\))?\s*$", label.strip())
+    if not m: return None, []
+    nums = []
+    for tok in m.group(2).replace(" ", "").split("/"):
+        if re.fullmatch(r"\d+-\d+", tok):
+            lo, hi = map(int, tok.split("-")); nums += [str(n) for n in range(lo, hi + 1)] if hi - lo < 50 else [tok]
+        elif tok: nums.append(tok)
+    return norm_street(m.group(1)), nums
+
+ENTITY_WORDS = {"TRUST", "TRUS", "FAMILY", "LIVING", "REVOCABLE", "REV", "REVOC", "LLC", "INC", "LP", "LTD", "ESTATE", "CORP",
+                "CO", "PARTNERSHIP", "SEPARATE", "PROPERTY", "VIVOS", "SURVIVORS", "IRREVOCABLE"}
+TRUST_ABBR = ("F/TR", "R/TR", "L/TR")
+ENTITY_ABBR = {"F/TR": "Family Trust", "R/TR": "Revocable Trust", "L/TR": "Living Trust", "TR": "Trust", "REV": "Revocable",
+               "REVOC": "Revocable", "TRUS": "Trust", "LLC": "LLC", "LP": "LP", "INC": "Inc.", "LTD": "Ltd."}
+KEEP_UPPER = {"II", "III", "IV", "LLC", "LP"}
+TRUSTEE = ("TRE", "TR", "TTEE", "TRS")
+
+def tc(word):
+    if word in KEEP_UPPER or re.fullmatch(r"\d+", word): return word
+    if "&" in word and len(word) <= 5: return word                       # K&B
+    def one(x):
+        if not x: return x
+        if x.startswith("MC") and len(x) > 2: return "Mc" + x[2:].capitalize()
+        if x.startswith("O'") and len(x) > 2: return "O'" + x[2:].capitalize()
+        return x.capitalize()
+    return "-".join(one(p) for p in word.split("-"))
+
+def entity_name(part):
+    out = []
+    for t in part.replace(" /", "/").split():
+        out.append(ENTITY_ABBR.get(t) or ("&" if t == "&" else "and" if t == "AND" else tc(t)))
+    return " ".join(out).replace("Trust Trust", "Trust")
+
+def friendly_owner_name(raw):
+    """'DOE JOHN A TRE; DOE JANE TRE; DOE FAMILY TRUST' -> 'John A & Jane Doe (trustees)'.
+    Best effort: the deed index lists people as LAST FIRST MIDDLE (often with TRE = trustee); trusts and companies are
+    kept as written in title case and only shown when no individual is listed. The raw text stays in owner_of_record."""
+    parts = [p.strip().upper() for p in re.split(r"[;|]", raw or "") if p.strip()]
+    parts = [p for p in parts if not (re.match(r"^(AON|APN)\b", p) or re.search(r"\d{3}-\d{3}-\d{3}", p))]  # parcel refs
+    # surnames we can trust: first token of parts written LAST FIRST ... TRE, or of plain 2-4 word parts
+    surnames = {p.split()[0] for p in parts if p.split()[-1] == "TRE"} | {p.split()[0] for p in parts if 2 <= len(p.split()) <= 4 and not set(p.split()) & (ENTITY_WORDS | set(TRUST_ABBR) | {"TR", "&", "AND"})}
+    people, entities, natural = [], [], []
+    after_dba = False
+    for part in parts:
+        w = part.split()
+        dba = "DBA" in w; w = [t for t in w if t != "DBA"]
+        if after_dba: entities.append(entity_name(" ".join(w))); after_dba = dba; continue
+        after_dba = dba
+        if set(w) & ENTITY_WORDS or set(w) & set(TRUST_ABBR) or (w[-1] == "TR" and ("&" in w or "AND" in w or len(w) <= 2)) \
+           or (w[-1] == "TR" and len(w) >= 3 and w[0] not in surnames and w[-2] in surnames):   # '<FIRST> <MI> <SURNAME> TR' = trust name
+            entities.append(entity_name(" ".join(w))); continue
+        if "AND" in w or "&" in w or any("-ETC" in t for t in w):
+            natural.append(" ".join("&" if t == "&" else "and" if t == "AND" else tc(t) for t in w)); continue
+        trustee = False
+        while w and w[-1] in TRUSTEE: trustee = True; w.pop()
+        sfx = w.pop() if len(w) > 2 and w[-1] in ("JR", "SR", "II", "III", "IV") else ""
+        if len(w) < 2: natural.append(" ".join(tc(t) for t in w)); continue
+        n_last = 2 if len(w) >= 3 and w[1] in surnames and w[0] not in surnames else 1      # '<SURNAME1> <SURNAME2> <FIRST> <MI>' (two-part surname)
+        if len(w) >= 3 and w[1] in surnames and w[0] in surnames and w[1] != w[0]: n_last = 2
+        last = " ".join(tc(t) for t in w[:n_last]); first = " ".join(tc(t) for t in w[n_last:])
+        sfx = (sfx if sfx in KEEP_UPPER else tc(sfx) + ".") if sfx else ""
+        people.append((last, first, sfx, trustee))
+    groups = {}
+    for last, first, sfx, tr in people:
+        g = groups.setdefault(last, {"firsts": [], "tr": False, "sfx": ""})
+        if first not in g["firsts"]: g["firsts"].append(first)
+        g["tr"] |= tr; g["sfx"] = g["sfx"] or sfx
+    out = []
+    for last, g in groups.items():
+        name = " & ".join(g["firsts"]) + " " + last + (" " + g["sfx"] if g["sfx"] else "")
+        if g["tr"]: name += " (trustees)" if len(g["firsts"]) > 1 else " (trustee)"
+        out.append(name)
+    if not out: out = natural or entities
+    return "; ".join(dict.fromkeys(out))
+
+def resident_key(street, number):
+    return (norm_street(street), str(number).strip())
 
 def merge_owners(path):
     src = read_csv(path)
     rows = read_csv(D("residents.csv"))
-    by_apn, by_addr = {}, {}
+    idx = {resident_key(r["street"], r["number"]): r for r in rows}
+    by_apn = {r.get("apn", "").replace("-", ""): r for r in rows if r.get("apn")}
+    filled = matched = 0
     for o in src:
-        if not o.get("owner_names"): continue
-        for apn in re.split(r"[;,]", o.get("apn", "")):
-            apn = apn.replace("-", "").strip()
-            if apn: by_apn.setdefault(apn, o)
-        by_addr.setdefault(norm_addr(o.get("full_address")), o)
-    filled = 0
-    for r in rows:
-        if r.get("owner_or_resident_names"): continue          # never overwrite what Gene typed
-        o = by_apn.get(r.get("apn", "").replace("-", "")) or by_addr.get(norm_addr(r["address"]))
-        if not o: continue
-        r["owner_or_resident_names"] = "; ".join(x.strip() for x in o["owner_names"].split("|") if x.strip())
-        r["source_of_name"] = (f"Public record owner ({o.get('source', '')}; as of {o.get('as_of_date', '')}; "
-                               f"confidence {o.get('confidence', '')}) - owner, may not be the resident")
-        filled += 1
+        st, nums = parse_input_address(o.get("input_address", ""))
+        r = idx.get((st, nums[0])) if st and len(nums) == 1 else None
+        if not r:
+            for apn in re.split(r"[;,]", o.get("apn", "")):
+                r = by_apn.get(apn.replace("-", "").strip())
+                if r: break
+        if not r: print("  no resident row for owner record:", o.get("input_address")); continue
+        matched += 1
+        if not r.get("apn") and o.get("apn"): r["apn"] = o["apn"]
+        note = (o.get("notes") or "").strip()
+        if note and "see link_address_flags" not in note:
+            add_flag(r, "Owner lookup: " + note)
+        raw = (o.get("owner_names") or "").strip()
+        if not raw: continue
+        if not r.get("owner_of_record"):
+            r.update(owner_of_record=raw, owner_name_confidence=(o.get("confidence") or "").lower(),
+                     owner_as_of_date=o.get("as_of_date", ""), owner_source=o.get("source", ""))
+        if not r.get("owner_or_resident_names"):           # never overwrite names Gene typed
+            r["owner_or_resident_names"] = friendly_owner_name(raw)
+            r["source_of_name"] = OWNER_LABEL
+            filled += 1
     write_csv(D("residents.csv"), rows, RES_FIELDS)
-    print(f"merged owner names into {filled} blank rows from {path}")
+    print(f"owner records matched to {matched} homes; filled names into {filled} blank rows")
+
+def add_flag(r, text):
+    if text and text not in (r.get("flags") or ""):
+        r["flags"] = "; ".join(x for x in [r.get("flags", ""), text] if x)
+
+def merge_flags(path):
+    rows = read_csv(D("residents.csv"))
+    idx = {resident_key(r["street"], r["number"]): r for r in rows}
+    n = 0
+    for f in read_csv(path):
+        st, nums = parse_input_address(f.get("input_address", ""))
+        text = f"Address check: {f.get('issue', '')}. Suggested: {f.get('suggested_correction', '')}. Evidence: {f.get('evidence', '')}"
+        for num in nums:
+            r = idx.get((st, num))
+            if r: add_flag(r, text); n += 1
+            else: print("  no resident row for flag:", f.get("input_address"), num)
+    write_csv(D("residents.csv"), rows, RES_FIELDS)
+    print(f"added address-check flags to {n} homes")
 
 def build():
     res, problems = [], []
@@ -107,7 +222,11 @@ def build():
             "lat": lat, "lng": lng, "geocode_quality": r.get("geocode_quality", ""),
             "approximate": not (r.get("geocode_quality", "").startswith(("house", "manual"))),
             "owner_or_resident_names": split_multi(r.get("owner_or_resident_names")),
-            "source_of_name": r.get("source_of_name", ""), "emails": split_multi(r.get("emails")),
+            "source_of_name": r.get("source_of_name", ""),
+            "is_owner_of_record": r.get("source_of_name", "") == OWNER_LABEL,
+            "owner_of_record": r.get("owner_of_record", ""), "owner_name_confidence": (r.get("owner_name_confidence") or "").lower(),
+            "owner_as_of_date": r.get("owner_as_of_date", ""), "owner_source": r.get("owner_source", ""),
+            "emails": split_multi(r.get("emails")),
             "phone": r.get("phone", ""), "signed_up": su, "events_attended": split_multi(r.get("events_attended")),
             "last_contact": lc, "notes": r.get("notes", ""), "flags": r.get("flags", ""),
         })
@@ -136,4 +255,5 @@ def build():
 if __name__ == "__main__":
     if "--seed" in sys.argv: seed()
     if "--merge-owners" in sys.argv: merge_owners(sys.argv[sys.argv.index("--merge-owners") + 1])
+    if "--merge-flags" in sys.argv: merge_flags(sys.argv[sys.argv.index("--merge-flags") + 1])
     build()

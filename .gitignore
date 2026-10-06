@@ -49,3 +49,7 @@ work/
 *.log
 __pycache__/
 .env
+
+# Link's owner-lookup workspace and research notes (never commit)
+_owner_lookup_work/
+research/

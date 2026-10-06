@@ -39,6 +39,7 @@ Firewise.load({ requireResidents: false }).then(({meta, residents, _env}) => {
     card(c.total, "homes mapped", ` / ${T} on sheet`) +
     card(c.signedYes, "signed up", ` of ${c.total}`) +
     card(c.anyAttended, "attended a past event", ` of ${c.total}`) +
+    card(c.withName, "homes with a name", ` of ${c.total}`) +
     card(c.withEmail, "homes with an email", ` of ${c.total}`);
   const flagged = residents.filter(r => r.flags);
   document.getElementById("dq").innerHTML =

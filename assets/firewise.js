@@ -126,12 +126,13 @@
   }
 
   function counts(residents) {
-    const c = { total: residents.length, signed: 0, attended: 0, noresp: 0, unknown: 0, anyAttended: 0, signedYes: 0, withEmail: 0, approx: 0 };
+    const c = { total: residents.length, signed: 0, attended: 0, noresp: 0, unknown: 0, anyAttended: 0, signedYes: 0, withEmail: 0, withName: 0, approx: 0 };
     residents.forEach(r => {
       c[r._status]++;
       if (r.events_attended.length) c.anyAttended++;
       if (r.signed_up === "yes") c.signedYes++;
       if (r.emails.length) c.withEmail++;
+      if (r.owner_or_resident_names.length) c.withName++;
       if (r.approximate) c.approx++;
     });
     return c;
