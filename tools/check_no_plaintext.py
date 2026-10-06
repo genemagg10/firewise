@@ -20,6 +20,8 @@ FORBIDDEN_TOOLS = {"tools/transcription.py"}
 EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
 PHONE = re.compile(r"(?<![\d.])\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4}(?!\d)")
 ALLOWED_EMAIL_FILES = ("assets/vendor/",)   # third-party library headers
+# Public organizational contacts deliberately published on the events page (NOT residents):
+PUBLIC_CONTACT_EMAILS = {"lafayettefirewise@gmail.com"}
 
 def staged():
     out = subprocess.check_output(["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"], text=True)
@@ -49,7 +51,8 @@ def main():
         try: text = blob.decode("utf-8")
         except UnicodeDecodeError: continue  # binary (images): skip content checks
         if not p.startswith(ALLOWED_EMAIL_FILES):
-            for m in EMAIL.findall(text): bad.append(f"{p}: contains an email address ({m[:3]}...)")
+            for m in EMAIL.findall(text):
+                if m.lower() not in PUBLIC_CONTACT_EMAILS: bad.append(f"{p}: contains an email address ({m[:3]}...)")
             for m in PHONE.findall(text): bad.append(f"{p}: contains a phone-number pattern")
         low = text.lower()
         for v in vals:

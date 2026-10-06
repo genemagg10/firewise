@@ -47,7 +47,7 @@ pre-commit hook) blocks any commit that contains an email address, a phone numbe
 and still open with the old password, so treat a password change as protecting future data only.
 
 ### Events
-Edit `data/events.csv` (`id,title,date,time,location,description,status,link`, where `status` is `upcoming` or `past`, and `past` is hidden).
+Edit `data/events.csv` (`id,title,date,end_date,time,location,organizer,cost,description,link`, with dates as `YYYY-MM-DD`). Events move to a collapsed "Past events" list automatically the day after their `end_date` (or `date`).
 Then rebuild and commit as above.
 
 ### Public-record owner names (optional)

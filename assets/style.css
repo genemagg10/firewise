@@ -116,3 +116,11 @@ body.locked{overflow:hidden}
 .lock-note{font-size:.82rem;margin-top:1rem !important}
 .lock-link{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:999px;padding:.35rem .8rem;font:inherit;font-weight:500;cursor:pointer}
 .lock-link:hover{background:rgba(255,255,255,.14)}
+.event .cost{font-size:.85rem;font-weight:600;color:#14612b}
+.event .src{font-size:.8rem;color:var(--muted)}
+.event.past{opacity:.75}
+.past-wrap{margin-top:1rem}
+.past-wrap summary{cursor:pointer;font-weight:600;color:var(--accent);margin-bottom:.75rem}
+.hood p{margin:.3rem 0 .6rem}
+ul.tight{margin:.3rem 0 .6rem;padding-left:1.2rem}
+ul.tight li{margin:.25rem 0}

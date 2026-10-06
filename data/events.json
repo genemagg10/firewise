@@ -1,12 +1,122 @@
 [
  {
   "id": "confire-open-house-2026",
-  "title": "Contra Costa Fire Open House (Fire Prevention Week)",
+  "title": "Con Fire Annual Open House",
   "date": "2026-10-10",
-  "time": "See Con Fire for times",
-  "location": "Con Fire stations (see cccfpd.org for participating stations)",
-  "description": "Community event listed on the Con Fire and Diablo Firesafe Council sites. A good chance to meet our fire district and invite neighbors.",
-  "status": "upcoming",
-  "link": "https://www.cccfpd.org/"
+  "end_date": "",
+  "time": "9:00 AM \u2013 1:00 PM",
+  "location": "Contra Costa Fire Training Center, 2945 Treat Blvd, Concord",
+  "organizer": "Contra Costa County Fire Protection District (Con Fire)",
+  "cost": "Free \u00b7 no registration",
+  "description": "Fire Prevention Week open house for the whole family: live demos, education booths, fire apparatus, food trucks, and a chance to meet the crews. This year's theme is \"Charge Into Fire Safety\" (lithium-ion battery safety).",
+  "link": "https://www.cccfpd.org/Calendar.aspx?EID=942"
+ },
+ {
+  "id": "mofd-open-house-2026",
+  "title": "MOFD Pancake Breakfast & Open House",
+  "date": "2026-10-10",
+  "end_date": "",
+  "time": "Hours TBA",
+  "location": "MOFD Fire Station 41, 1284 Moraga Way, Moraga",
+  "organizer": "Moraga-Orinda Fire District (neighboring district)",
+  "cost": "",
+  "description": "Annual Fire Prevention Week open house and pancake breakfast with station tours, firefighters, and safety info. Check mofd.org for hours before going.",
+  "link": "https://diablofiresafe.org/blog/2026-fire-prevention-week-events"
+ },
+ {
+  "id": "cert-meeting-2026-10",
+  "title": "Lamorinda CERT Monthly Meeting: Earthquakes",
+  "date": "2026-10-12",
+  "end_date": "",
+  "time": "7:00 \u2013 8:30 PM",
+  "location": "Online (Zoom)",
+  "organizer": "Lamorinda CERT",
+  "cost": "Free \u00b7 open to the public",
+  "description": "Local earthquake consequences, including water availability and quality, with speakers from LMOCERT and EBMUD. The registration form opens the Zoom; don't submit it before 6:50 PM.",
+  "link": "https://lamorindacert.org/monthly-meeting-registration/"
+ },
+ {
+  "id": "shakeout-2026",
+  "title": "Great California ShakeOut earthquake drill",
+  "date": "2026-10-15",
+  "end_date": "",
+  "time": "10:15 AM",
+  "location": "Anywhere: home, school, or work",
+  "organizer": "Earthquake Country Alliance",
+  "cost": "Free",
+  "description": "Statewide Drop, Cover, and Hold On drill. Households and neighborhood groups can register to take part.",
+  "link": "https://www.shakeout.org/register/register.php"
+ },
+ {
+  "id": "public-safety-day-2026",
+  "title": "4th Annual Lamorinda Public Safety Day",
+  "date": "2026-10-24",
+  "end_date": "",
+  "time": "9:00 \u2013 11:00 AM",
+  "location": "St. Anselm's Episcopal Church, 682 Michael Ln, Lafayette",
+  "organizer": "Lamorinda CERT and community partners",
+  "cost": "Free",
+  "description": "Family morning with kids' activities, free food, and safety info from Lafayette Police, Contra Costa County Fire Prevention, the American Red Cross, CERT, PG&E, the Lamorinda Radio Interest Group, and Contra Costa Search & Rescue. Fire truck visit at 10 AM.",
+  "link": "https://lamorindacert.org/calendar/4th-annual-lamorinda-public-safety-day/"
+ },
+ {
+  "id": "safe-at-scale-2026",
+  "title": "Safe at Scale: \"Weathered: After the LA Firestorm\" screening and wildfire panel",
+  "date": "2026-10-29",
+  "end_date": "",
+  "time": "7:00 \u2013 9:30 PM",
+  "location": "Orinda Theatre, Orinda",
+  "organizer": "Sustainable Contra Costa / Orinda Theatre",
+  "cost": "Ticketed",
+  "description": "PBS documentary on lessons from the January 2025 LA fires, followed by a panel with Sen. Tim Grayson, Asm. Rebecca Bauer-Kahan, MOFD Chief Jeff Isaacs, director Trip Jennings, and IBHS's Steve Hawks on home hardening and insurance-relevant mitigation.",
+  "link": "https://www.orindamovies.com/events/77906-safe-at-scale-weathered/"
+ },
+ {
+  "id": "confire-cpr-2026-11-21",
+  "title": "Con Fire free CPR/AED skills session",
+  "date": "2026-11-21",
+  "end_date": "",
+  "time": "9:30 AM",
+  "location": "Contra Costa Fire Training Center, 2945 Treat Blvd, Concord",
+  "organizer": "Con Fire",
+  "cost": "Free \u00b7 ages 14+ \u00b7 live or work in the district",
+  "description": "Complete the free online AHA Heartsaver course first, then attend this in-person skills session. Lafayette is in Con Fire's district. (The Oct 20, Oct 24, and Nov 17 sessions are full.)",
+  "link": "https://www.cccfpd.org/453/Learn-CPR"
+ },
+ {
+  "id": "confire-cpr-2026-12-15",
+  "title": "Con Fire free CPR/AED skills session",
+  "date": "2026-12-15",
+  "end_date": "",
+  "time": "9:30 AM",
+  "location": "Contra Costa Fire Training Center, 2945 Treat Blvd, Concord",
+  "organizer": "Con Fire",
+  "cost": "Free \u00b7 ages 14+ \u00b7 live or work in the district",
+  "description": "Complete the free online AHA Heartsaver course first, then attend this in-person skills session. Lafayette is in Con Fire's district. (The Oct 20, Oct 24, and Nov 17 sessions are full.)",
+  "link": "https://www.cccfpd.org/453/Learn-CPR"
+ },
+ {
+  "id": "confire-cpr-2026-12-19",
+  "title": "Con Fire free CPR/AED skills session",
+  "date": "2026-12-19",
+  "end_date": "",
+  "time": "9:30 AM",
+  "location": "Contra Costa Fire Training Center, 2945 Treat Blvd, Concord",
+  "organizer": "Con Fire",
+  "cost": "Free \u00b7 ages 14+ \u00b7 live or work in the district",
+  "description": "Complete the free online AHA Heartsaver course first, then attend this in-person skills session. Lafayette is in Con Fire's district. (The Oct 20, Oct 24, and Nov 17 sessions are full.)",
+  "link": "https://www.cccfpd.org/453/Learn-CPR"
+ },
+ {
+  "id": "cert-basic-winter-2027",
+  "title": "Lamorinda CERT Basic Training: Winter 2027 series (starts)",
+  "date": "2027-01-07",
+  "end_date": "",
+  "time": "Thursdays 6:30 \u2013 9:30 PM, Jan 7 \u2013 Mar 4",
+  "location": "Moraga Hacienda de las Flores (Casita), 2100 Donald Dr, Moraga",
+  "organizer": "Lamorinda CERT",
+  "cost": "$40 for Lamorinda residents \u00b7 registration open",
+  "description": "Nine evening classes covering home preparedness, wildfire and earthquake, fire safety, disaster medical, and light search and rescue, plus a Feb 25 skills exercise at the Con Fire Training Center. Includes a free CERT backpack and medical kit.",
+  "link": "https://lamorindacert.org/training/classes/"
  }
 ]
