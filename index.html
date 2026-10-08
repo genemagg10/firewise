@@ -19,21 +19,27 @@
 <div id="publicRoot">
 <main id="content" class="community">
   <section class="hero-band">
-    <div class="wrap">
-      <p class="eyebrow">Lafayette, California</p>
-      <h1>Las Trampas Firewise Neighborhood</h1>
-      <hr class="hero-rule">
-      <p class="lede">A neighbor-led wildfire community for Evacuation Area 016. Firewise USA approved the neighborhood&rsquo;s application on September 25, 2026. The community covers about 193 homes and is listed on the Firewise plan as Las Trampas LAF-016.</p>
-      <div class="hero-actions">
-        <a class="btn" href="action-plan.html">Read the action plan</a>
-        <a class="btn secondary" href="#events">Upcoming events</a>
+    <div class="wrap hero-layout">
+      <div class="hero-copy">
+        <p class="eyebrow">Lafayette, California</p>
+        <h1>Las Trampas Firewise Neighborhood</h1>
+        <hr class="hero-rule">
+        <p class="lede">A neighbor-led wildfire community for Evacuation Area 016. Firewise USA approved the neighborhood&rsquo;s application on September 25, 2026. The community covers about 193 homes and is listed on the Firewise plan as Las Trampas LAF-016.</p>
+        <div class="hero-actions">
+          <a class="btn" href="action-plan.html">Read the action plan</a>
+          <a class="btn secondary" href="#events">Upcoming events</a>
+        </div>
+        <ul class="facts">
+          <li>Evacuation Area 016</li>
+          <li>About 193 homes</li>
+          <li>Approved September 25, 2026</li>
+          <li>Lafayette, CA</li>
+        </ul>
       </div>
-      <ul class="facts">
-        <li>Evacuation Area 016</li>
-        <li>About 193 homes</li>
-        <li>Approved September 25, 2026</li>
-        <li>Lafayette, CA</li>
-      </ul>
+      <figure class="hero-photo">
+        <img src="assets/photos/rocky-ridge.webp" width="1400" height="1041" alt="Coast live oaks and open grassland on a slope at Rocky Ridge, in the Las Trampas hills.">
+        <figcaption>Rocky Ridge, Las Trampas hills</figcaption>
+      </figure>
     </div>
   </section>
   <div class="wrap">
@@ -70,6 +76,28 @@
         <h2 id="prepare-h">Prepare your home</h2>
         <p>Official guidance for the same work the Year 1 action plan asks neighbors to do.</p>
       </div>
+      <figure class="zone-figure">
+        <svg viewBox="0 0 760 200" role="img" aria-labelledby="zonesTitle zonesDesc">
+          <title id="zonesTitle">Defensible space zones</title>
+          <desc id="zonesDesc">A diagram of Zone 0 from 0 to 5 feet, Zone 1 from 5 to 30 feet, and Zone 2 from 30 to 100 feet. This is a diagram, not a house in this neighborhood.</desc>
+          <rect x="8" y="16" width="120" height="168" rx="12" fill="#234e3c"/>
+          <path d="M68 48c-14 20-30 30-30 52a30 30 0 0 0 60 0c0-22-16-32-30-52z" fill="#f3e6c4"/>
+          <text x="68" y="158" text-anchor="middle" fill="#f6f3ec" font-family="Atkinson Hyperlegible, sans-serif" font-size="14" font-weight="700">House</text>
+          <rect x="144" y="16" width="180" height="168" rx="12" fill="#f4e4d4" stroke="#9a4e24" stroke-width="2"/>
+          <text x="234" y="78" text-anchor="middle" fill="#1c2822" font-family="Fraunces, Georgia, serif" font-size="28">0</text>
+          <text x="234" y="108" text-anchor="middle" fill="#1c2822" font-family="Atkinson Hyperlegible, sans-serif" font-size="16" font-weight="700">Zone 0</text>
+          <text x="234" y="132" text-anchor="middle" fill="#5c675f" font-family="Atkinson Hyperlegible, sans-serif" font-size="14">0–5 ft</text>
+          <rect x="340" y="16" width="190" height="168" rx="12" fill="#f7f0dc" stroke="#8a6a12" stroke-width="2"/>
+          <text x="435" y="78" text-anchor="middle" fill="#1c2822" font-family="Fraunces, Georgia, serif" font-size="28">1</text>
+          <text x="435" y="108" text-anchor="middle" fill="#1c2822" font-family="Atkinson Hyperlegible, sans-serif" font-size="16" font-weight="700">Zone 1</text>
+          <text x="435" y="132" text-anchor="middle" fill="#5c675f" font-family="Atkinson Hyperlegible, sans-serif" font-size="14">5–30 ft</text>
+          <rect x="546" y="16" width="206" height="168" rx="12" fill="#e5efe6" stroke="#234e3c" stroke-width="2"/>
+          <text x="649" y="78" text-anchor="middle" fill="#1c2822" font-family="Fraunces, Georgia, serif" font-size="28">2</text>
+          <text x="649" y="108" text-anchor="middle" fill="#1c2822" font-family="Atkinson Hyperlegible, sans-serif" font-size="16" font-weight="700">Zone 2</text>
+          <text x="649" y="132" text-anchor="middle" fill="#5c675f" font-family="Atkinson Hyperlegible, sans-serif" font-size="14">30–100 ft</text>
+        </svg>
+        <figcaption>A diagram of the three defensible-space zones used by CAL FIRE. This is not a house in this neighborhood.</figcaption>
+      </figure>
       <div class="grid cols-3">
         <article class="card">
           <p class="cat-label">Defensible space</p>
@@ -81,6 +109,13 @@
         <article class="card">
           <p class="cat-label">Home hardening</p>
           <h3>The house itself</h3>
+          <figure class="vent-figure">
+            <svg class="vent" viewBox="0 0 72 48" role="img" aria-label="Simple drawing of a screened roof vent">
+              <rect x="2" y="6" width="68" height="36" rx="3" fill="#f6f3ec" stroke="#234e3c" stroke-width="2"/>
+              <path d="M2 14h68M2 22h68M2 30h68M2 38h68M14 6v36M26 6v36M38 6v36M50 6v36M62 6v36" fill="none" stroke="#234e3c" stroke-width="1.2"/>
+            </svg>
+            <figcaption>A drawing of a screened vent, not a house in this neighborhood.</figcaption>
+          </figure>
           <p>Roof, vents, eaves, gutters, windows, decks, and fences. The plan starts with vents, shingles, gutters, and chimneys.</p>
           <p><a href="https://www.readyforwildfire.org/prepare-for-wildfire/hardening-your-home/" target="_blank" rel="noopener noreferrer">CAL FIRE: Hardening Your Home</a></p>
           <p><a href="action-plan.html#hardening">Our home-hardening goals</a></p>
@@ -100,7 +135,8 @@
         <h2 id="alerts-h">Emergency alerts</h2>
         <p>Sign up before a fire day. The action plan asks every household to join the county warning system.</p>
       </div>
-      <div class="grid cols-2">
+      <div class="alert-layout">
+        <div class="alert-copy">
         <article class="card">
           <h3>Contra Costa Community Warning System</h3>
           <p>The county&rsquo;s official emergency and evacuation alerts by call, text, or email. Register every phone.</p>
@@ -116,6 +152,11 @@
           </ul>
           <p><a href="events.html#alerts">Full alert and evacuation list</a></p>
         </article>
+        </div>
+        <figure class="alert-photo">
+          <img src="assets/photos/go-bag.webp" width="880" height="860" alt="An open Red Cross emergency go bag with water, a radio, a flashlight, and other supplies on a table.">
+          <figcaption>A Red Cross emergency go bag. Not a kit from this neighborhood.</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -184,7 +225,7 @@
           <p class="muted" style="margin-bottom:0">This neighborhood does not publish organizers&rsquo; home addresses, personal emails, or phone numbers on this site.</p>
         </article>
         <aside class="emergency">
-          <h3 style="margin:0;font-family:Georgia,serif">In an emergency</h3>
+          <h3 style="margin:0">In an emergency</h3>
           <p>Call 911 and follow official orders. Leave early if you feel unsafe. Confirm your zone at <a href="https://protect.genasys.com/" target="_blank" rel="noopener noreferrer">Genasys Protect</a>.</p>
         </aside>
       </div>
@@ -195,6 +236,14 @@
   <p><strong>Las Trampas Firewise Neighborhood</strong> &middot; Evacuation Area 016 &middot; Lafayette, California</p>
   <p>In an emergency, call 911 and follow official orders.</p>
   <p class="muted">Community site &middot; events list updated <span data-generated></span></p>
+  <details class="img-credits">
+    <summary>Photo credits</summary>
+    <ul>
+      <li>Oak savanna at Rocky Ridge, Buckhorn Creek watershed, Las Trampas hills. Peter J. Caprio, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>, via <a href="https://commons.wikimedia.org/wiki/File:Oak_Savanna_on_Rocky_Ridge.png" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>. Resized and compressed.</li>
+      <li>Emergency go bag. American Red Cross photograph, <a href="https://commons.wikimedia.org/wiki/File:FEMA_-_37174_-_Emergency_Preparedness_%22ready_to_go%22_kit..jpg" target="_blank" rel="noopener noreferrer">FEMA Photo Library</a>, public domain. Cropped, resized, and compressed.</li>
+      <li>The zone diagram and vent drawing on this page are original illustrations for this site.</li>
+    </ul>
+  </details>
 </div></footer>
 <button type="button" class="corner-lock" id="cornerLock" aria-label="Organizer sign-in" title="Organizer sign-in">
   <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>

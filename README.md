@@ -17,6 +17,8 @@ Public pages do not link to the map, roster, or dashboard. A small lock button i
 
 The public pages do not name organizers. The City of Lafayette Firewise contact is the public way to get involved.
 
+Public photos live in `assets/photos/` and the typefaces in `assets/fonts/` (Fraunces for headings and Atkinson Hyperlegible for body text, both under the SIL Open Font License). Each public page lists photo credits. Do not add photos of private homes or of residents in this neighborhood.
+
 ### Community Wildfire Action Plan
 `action-plan.html` is the public Year 1 plan for **Las Trampas LAF-016**, covering **2027–2029**. The wording follows the Firewise USA three-year action plan form. Two obvious slips were corrected: "seasonal fire risks" and "sign up for the" Community Warning System. The participation target (from 24 households to at least 34, 17%, by year end 2027) is called out on the homepage and on the plan. Edit `action-plan.html` to change the plan. Do not put household data in that file. The form photos are not part of the site.
 
