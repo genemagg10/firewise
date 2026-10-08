@@ -19,26 +19,37 @@
 <div id="publicRoot">
 <main id="content" class="community">
   <section class="hero-band">
-    <div class="wrap">
-      <p class="eyebrow">Lafayette, California</p>
-      <h1>Las Trampas Firewise Neighborhood</h1>
-      <hr class="hero-rule">
-      <p class="lede">A neighbor-led wildfire community for Evacuation Area 016. Firewise USA approved the neighborhood&rsquo;s application on September 25, 2026. The community covers about 193 homes and is listed on the Firewise plan as Las Trampas LAF-016.</p>
-      <div class="hero-actions">
-        <a class="btn" href="action-plan.html">Read the action plan</a>
-        <a class="btn secondary" href="#events">Upcoming events</a>
+    <div class="wrap hero-layout">
+      <div class="hero-copy">
+        <p class="eyebrow">Lafayette, California</p>
+        <h1>Las Trampas Firewise Neighborhood</h1>
+        <hr class="hero-rule">
+        <p class="lede">A neighbor-led wildfire community for Evacuation Area 016. Firewise USA approved the neighborhood&rsquo;s application on September 25, 2026. The community covers about 193 homes and is listed on the Firewise plan as Las Trampas LAF-016.</p>
+        <div class="hero-actions">
+          <a class="btn" href="action-plan.html">Read the action plan</a>
+          <a class="btn secondary" href="#events">Upcoming events</a>
+        </div>
       </div>
-      <ul class="facts">
-        <li>Evacuation Area 016</li>
-        <li>About 193 homes</li>
-        <li>Approved September 25, 2026</li>
-        <li>Lafayette, CA</li>
+      <figure class="hero-photo">
+        <img src="assets/photos/rocky-ridge.webp" width="1400" height="1041" alt="Coast live oaks and open grassland on a slope at Rocky Ridge, in the Las Trampas hills.">
+        <figcaption>Rocky Ridge, Las Trampas hills</figcaption>
+      </figure>
+    </div>
+  </section>
+  <section class="stat-strip" aria-label="Neighborhood facts">
+    <div class="wrap">
+      <ul>
+        <li><strong>016</strong><span>Evacuation area</span></li>
+        <li><strong>193</strong><span>Homes, about</span></li>
+        <li><strong>2026</strong><span>Approved September 25</span></li>
+        <li><strong>LAF-016</strong><span>Firewise plan name</span></li>
       </ul>
     </div>
   </section>
-  <div class="wrap">
-    <section id="plan" aria-labelledby="plan-h">
+  <section class="band band-paper" id="plan" aria-labelledby="plan-h">
+    <div class="wrap">
       <div class="section-head">
+        <p class="section-kicker"><span class="kicker-num">01</span> The plan</p>
         <h2 id="plan-h">Community Wildfire Action Plan</h2>
         <p>Las Trampas LAF-016 &middot; 2027&ndash;2029 &middot; Action Plan Year 1</p>
       </div>
@@ -48,59 +59,83 @@
         <p style="margin:0">That target is Year 1 education and outreach goal 3. <a href="action-plan.html#participation">See it in the plan</a>.</p>
       </div>
       <div class="grid cols-2">
-        <a class="card plan-link" href="action-plan.html#education"><h3>Education and Outreach</h3><p>Quarterly emails on seasonal fire risks, outreach to more households, the city wildfire guide, and a meeting with Lafayette police.</p></a>
-        <a class="card plan-link" href="action-plan.html#hardening"><h3>Home Hardening</h3><p>Roof vents and eaves, loose shingles, gutter covers, chimney screening, and the space under patios and decks.</p></a>
-        <a class="card plan-link" href="action-plan.html#defensible"><h3>Defensible Space / Fuel Reduction</h3><p>Dead trees and brush, highly flammable plants, the 0-5ft zone, mulch, and what is stored under decks and porches.</p></a>
-        <a class="card plan-link" href="action-plan.html#evacuation"><h3>Evacuation Planning and Wildfire Preparedness</h3><p>Sign up for the Contra Costa Community Warning System, and plan evacuation with the Lafayette police.</p></a>
+        <a class="card plan-link" href="action-plan.html#education"><span class="mark">01</span><h3>Education and Outreach</h3><p>Quarterly emails on seasonal fire risks, outreach to more households, the city wildfire guide, and a meeting with Lafayette police.</p></a>
+        <a class="card plan-link" href="action-plan.html#hardening"><span class="mark">02</span><h3>Home Hardening</h3><p>Roof vents and eaves, loose shingles, gutter covers, chimney screening, and the space under patios and decks.</p></a>
+        <a class="card plan-link" href="action-plan.html#defensible"><span class="mark">03</span><h3>Defensible Space / Fuel Reduction</h3><p>Dead trees and brush, highly flammable plants, the 0-5ft zone, mulch, and what is stored under decks and porches.</p></a>
+        <a class="card plan-link" href="action-plan.html#evacuation"><span class="mark">04</span><h3>Evacuation Planning and Wildfire Preparedness</h3><p>Sign up for the Contra Costa Community Warning System, and plan evacuation with the Lafayette police.</p></a>
       </div>
       <p style="margin:1rem 0 0"><a class="btn" href="action-plan.html">Read the full action plan</a></p>
-    </section>
+    </div>
+  </section>
 
-    <section id="events" aria-labelledby="events-h">
+  <section class="band band-sand" id="events" aria-labelledby="events-h">
+    <div class="wrap">
       <div class="section-head">
+        <p class="section-kicker"><span class="kicker-num">02</span> Calendar</p>
         <h2 id="events-h">Upcoming events</h2>
         <p>Neighborhood and nearby preparedness events. Past dates move off this list on their own.</p>
       </div>
       <div class="grid cols-3" id="eventGrid" aria-live="polite"><p class="muted">Loading events&hellip;</p></div>
       <p id="eventMore" style="margin:.9rem 0 0"></p>
-    </section>
+    </div>
+  </section>
 
-    <section id="prepare" aria-labelledby="prepare-h">
+  <figure class="photo-strip">
+    <img src="assets/photos/fuel-treatment.webp" width="1200" height="799" alt="Two views of the same forest slope: thick brush before a fuel treatment, and a more open stand of trees after.">
+    <figcaption><div class="wrap">A U.S. Forest Service fuel treatment in California. The same slope before and after brush was thinned. Not this neighborhood.</div></figcaption>
+  </figure>
+
+  <section class="band band-paper" id="prepare" aria-labelledby="prepare-h">
+    <div class="wrap">
       <div class="section-head">
+        <p class="section-kicker"><span class="kicker-num">03</span> At home</p>
         <h2 id="prepare-h">Prepare your home</h2>
         <p>Official guidance for the same work the Year 1 action plan asks neighbors to do.</p>
       </div>
       <div class="grid cols-3">
-        <article class="card">
-          <p class="cat-label">Defensible space</p>
-          <h3>The space around the house</h3>
-          <p>Clear the 0-5ft zone, then the next rings out to 100 feet. That work is Year 1 of the neighborhood plan.</p>
-          <p><a href="https://www.readyforwildfire.org/prepare-for-wildfire/defensible-space/" target="_blank" rel="noopener noreferrer">CAL FIRE: Defensible Space</a></p>
-          <p><a href="action-plan.html#defensible">Our fuel-reduction goals</a></p>
+        <article class="card card-photo">
+          <img src="assets/photos/defensible-home.webp" width="1046" height="937" alt="A single-story house with a mowed yard and trimmed trees set back from the walls.">
+          <div class="card-body">
+            <p class="cat-label">Defensible space</p>
+            <h3>The space around the house</h3>
+            <p>Clear the 0-5ft zone, then the next rings out to 100 feet. That work is Year 1 of the neighborhood plan.</p>
+            <p><a href="https://www.readyforwildfire.org/prepare-for-wildfire/defensible-space/" target="_blank" rel="noopener noreferrer">CAL FIRE: Defensible Space</a></p>
+            <p><a href="action-plan.html#defensible">Our fuel-reduction goals</a></p>
+          </div>
         </article>
-        <article class="card">
-          <p class="cat-label">Home hardening</p>
-          <h3>The house itself</h3>
-          <p>Roof, vents, eaves, gutters, windows, decks, and fences. The plan starts with vents, shingles, gutters, and chimneys.</p>
-          <p><a href="https://www.readyforwildfire.org/prepare-for-wildfire/hardening-your-home/" target="_blank" rel="noopener noreferrer">CAL FIRE: Hardening Your Home</a></p>
-          <p><a href="action-plan.html#hardening">Our home-hardening goals</a></p>
+        <article class="card card-photo">
+          <img src="assets/photos/ember-mesh.webp" width="476" height="441" alt="Glowing firebrands from a NIST test aimed at a fine metal screen, with a burning pad behind the mesh.">
+          <div class="card-body">
+            <p class="cat-label">Home hardening</p>
+            <h3>The house itself</h3>
+            <p>Roof, vents, eaves, gutters, windows, decks, and fences. The plan starts with vents, shingles, gutters, and chimneys.</p>
+            <p><a href="https://www.readyforwildfire.org/prepare-for-wildfire/hardening-your-home/" target="_blank" rel="noopener noreferrer">CAL FIRE: Hardening Your Home</a></p>
+            <p><a href="action-plan.html#hardening">Our home-hardening goals</a></p>
+          </div>
         </article>
-        <article class="card">
-          <p class="cat-label">Evacuation</p>
-          <h3>Know Area 016</h3>
-          <p>This neighborhood is Evacuation Area 016. Confirm your exact zone before you need it, and make a household plan.</p>
-          <p><a href="https://protect.genasys.com/" target="_blank" rel="noopener noreferrer">Genasys Protect zone lookup</a></p>
-          <p><a href="https://readyforwildfire.org/prepare-for-wildfire/wildfire-action-plan/" target="_blank" rel="noopener noreferrer">Ready, Set, Go!</a></p>
+        <article class="card card-photo">
+          <img src="assets/photos/fire-danger.webp" width="1200" height="799" alt="A U.S. Forest Service fire danger sign reading Very High beside a road in Klamath National Forest, California.">
+          <div class="card-body">
+            <p class="cat-label">Evacuation</p>
+            <h3>Know Area 016</h3>
+            <p>This neighborhood is Evacuation Area 016. Confirm your exact zone before you need it, and make a household plan.</p>
+            <p><a href="https://protect.genasys.com/" target="_blank" rel="noopener noreferrer">Genasys Protect zone lookup</a></p>
+            <p><a href="https://readyforwildfire.org/prepare-for-wildfire/wildfire-action-plan/" target="_blank" rel="noopener noreferrer">Ready, Set, Go!</a></p>
+          </div>
         </article>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="alerts" aria-labelledby="alerts-h">
+  <section class="band band-green" id="alerts" aria-labelledby="alerts-h">
+    <div class="wrap">
       <div class="section-head">
+        <p class="section-kicker"><span class="kicker-num">04</span> Alerts</p>
         <h2 id="alerts-h">Emergency alerts</h2>
         <p>Sign up before a fire day. The action plan asks every household to join the county warning system.</p>
       </div>
-      <div class="grid cols-2">
+      <div class="alert-layout">
+        <div class="alert-copy">
         <article class="card">
           <h3>Contra Costa Community Warning System</h3>
           <p>The county&rsquo;s official emergency and evacuation alerts by call, text, or email. Register every phone.</p>
@@ -116,14 +151,26 @@
           </ul>
           <p><a href="events.html#alerts">Full alert and evacuation list</a></p>
         </article>
+        </div>
+        <figure class="alert-photo">
+          <img src="assets/photos/go-bag.webp" width="880" height="860" alt="An open Red Cross emergency go bag with water, a radio, a flashlight, and other supplies on a table.">
+          <figcaption>A Red Cross emergency go bag. Not a kit from this neighborhood.</figcaption>
+        </figure>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section aria-labelledby="programs-h">
+  <section class="band band-paper" aria-labelledby="programs-h">
+    <div class="wrap">
       <div class="section-head">
+        <p class="section-kicker"><span class="kicker-num">05</span> Local help</p>
         <h2 id="programs-h">Local programs</h2>
         <p>City, fire district, and regional programs that apply to this neighborhood.</p>
       </div>
+      <figure class="banner-photo">
+        <img src="assets/photos/fuel-crew.webp" width="1400" height="935" alt="A fuels crew in yellow shirts and hard hats using chainsaws on a brushy hillside.">
+        <figcaption>Angeles National Forest Crew 41 cutting a fuel break. U.S. Forest Service. Not a work day in this neighborhood.</figcaption>
+      </figure>
       <div class="grid cols-2">
         <article class="card">
           <h3>Chipping days</h3>
@@ -146,10 +193,13 @@
           <p><a href="events.html#resources">Classes and the full resource list</a></p>
         </article>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="involved" aria-labelledby="involved-h">
+  <section class="band band-sand" id="involved" aria-labelledby="involved-h">
+    <div class="wrap">
       <div class="section-head">
+        <p class="section-kicker"><span class="kicker-num">06</span> Neighbors</p>
         <h2 id="involved-h">Get involved</h2>
         <p>Firewise here is neighbor work: alerts, defensible space, home hardening, and showing up. The Year 1 plan is how the neighborhood is organizing that work.</p>
       </div>
@@ -170,10 +220,13 @@
           <p style="margin-bottom:0"><a href="#contact">Get involved</a> through the City of Lafayette Firewise contact.</p>
         </article>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="contact" aria-labelledby="contact-h">
+  <section class="band band-paper" id="contact" aria-labelledby="contact-h">
+    <div class="wrap">
       <div class="section-head">
+        <p class="section-kicker"><span class="kicker-num">07</span> Reach us</p>
         <h2 id="contact-h">Contact</h2>
       </div>
       <div class="grid cols-2 contact-grid">
@@ -184,17 +237,29 @@
           <p class="muted" style="margin-bottom:0">This neighborhood does not publish organizers&rsquo; home addresses, personal emails, or phone numbers on this site.</p>
         </article>
         <aside class="emergency">
-          <h3 style="margin:0;font-family:Georgia,serif">In an emergency</h3>
+          <h3 style="margin:0">In an emergency</h3>
           <p>Call 911 and follow official orders. Leave early if you feel unsafe. Confirm your zone at <a href="https://protect.genasys.com/" target="_blank" rel="noopener noreferrer">Genasys Protect</a>.</p>
         </aside>
       </div>
-    </section>
-  </div>
+    </div>
+  </section>
 </main>
 <footer class="site"><div class="wrap">
   <p><strong>Las Trampas Firewise Neighborhood</strong> &middot; Evacuation Area 016 &middot; Lafayette, California</p>
   <p>In an emergency, call 911 and follow official orders.</p>
   <p class="muted">Community site &middot; events list updated <span data-generated></span></p>
+  <details class="img-credits">
+    <summary>Photo credits</summary>
+    <ul>
+      <li>Oak savanna at Rocky Ridge, Buckhorn Creek watershed, Las Trampas hills. Peter J. Caprio, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>, via <a href="https://commons.wikimedia.org/wiki/File:Oak_Savanna_on_Rocky_Ridge.png" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>. Resized and compressed.</li>
+      <li>Fuel treatment, before and after. U.S. Forest Service, Pacific Southwest Region, public domain (U.S. government work); the Flickr copy is also <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener noreferrer">CC BY 2.0</a>. Via <a href="https://commons.wikimedia.org/wiki/File:A_picture_is_worth_a_1,000_words_fuel_treatments_at_work_(18431459800).jpg" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>. Resized and compressed.</li>
+      <li>Home with defensible space. U.S. Government Accountability Office, public domain, from report GAO-09-877. Via <a href="https://commons.wikimedia.org/wiki/File:Figure_3-_Home_with_Defensible_Space_(14495370044).jpg" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>. Resized and compressed.</li>
+      <li>Firebrands aimed at a fine screen mesh. National Institute of Standards and Technology, public domain. Via <a href="https://commons.wikimedia.org/wiki/File:NIST_Firebrand_Device_Could_Save_U.S._and_Japanese_Homes_(5887635115).jpg" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>. Resized and compressed.</li>
+      <li>Fire danger sign, Klamath National Forest, California. U.S. Forest Service / InciWeb, public domain. Via <a href="https://commons.wikimedia.org/wiki/File:Fire_Danger_Rating_Sign_Klamath,_California.jpg" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>. Resized and compressed.</li>
+      <li>Angeles National Forest Crew 41 cutting a fuel break. Photograph by Gary Ananian, U.S. Forest Service, public domain. Via <a href="https://commons.wikimedia.org/wiki/File:ANF_Crew_41_Fuel_Break_in_Arroyo_Seco_drainage_(54268430813).jpg" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>. Resized and compressed.</li>
+      <li>Emergency go bag. American Red Cross photograph, <a href="https://commons.wikimedia.org/wiki/File:FEMA_-_37174_-_Emergency_Preparedness_%22ready_to_go%22_kit..jpg" target="_blank" rel="noopener noreferrer">FEMA Photo Library</a>, public domain. Cropped, resized, and compressed.</li>
+    </ul>
+  </details>
 </div></footer>
 <button type="button" class="corner-lock" id="cornerLock" aria-label="Organizer sign-in" title="Organizer sign-in">
   <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
