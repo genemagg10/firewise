@@ -14,7 +14,7 @@
   python3 tools/build_data.py --merge-emails data/private/email_household_matches.csv
                                        # attach high/medium-confidence matched emails (output of tools/match_emails.py)
                                        # to their homes, with per-email confidence + evidence. Emails typed by hand are kept;
-                                       # low-confidence and unplaced emails are never attached. Safe to re-run.
+                                       # low-confidence (unless note says 'organizer-approved low') and unplaced emails are never attached. Safe to re-run.
                                        # If data/private/unmatched_emails.csv exists, its non-official rows go into the
                                        # ENCRYPTED payload as "unplaced_contacts" (never attached to a home).
   python3 tools/build_data.py --apply-corrections data/address_corrections.csv
@@ -294,7 +294,8 @@ def load_corrections():
 
 # ---------------- matched-email merge (tools/match_emails.py output) ----------------
 EMAIL_RANK = {"high": 3, "medium": 2, "low": 1}
-ATTACH_CONFIDENCE = ("high", "medium")          # low-confidence guesses stay in data/private, never on a home
+ATTACH_CONFIDENCE = ("high", "medium")          # low-confidence guesses stay in data/private, never on a home...
+LOW_OK_MARKER = "organizer-approved low"        # ...unless an organizer explicitly approved that row (marker in its note); shown with a "low" pill
 
 def parse_email_evidence(cell):
     """email_source_evidence: one line per matched email, 'email | confidence | evidence'."""
@@ -313,7 +314,8 @@ def merge_emails(path):
     skipped_low = unplaced = 0
     for m in src:
         e, conf = m.get("email", "").strip().lower(), (m.get("confidence") or "").lower()
-        if conf not in ATTACH_CONFIDENCE: skipped_low += 1; continue
+        if conf not in ATTACH_CONFIDENCE and not (conf == "low" and LOW_OK_MARKER in (m.get("note") or "").lower()):
+            skipped_low += 1; continue
         street_part = (m.get("matched_full_address") or "").split(",")[0]
         mm = re.match(r"^(\d+)\s+(.*)$", street_part.strip())
         r = idx.get(resident_key(mm.group(2), mm.group(1))) if mm else None
