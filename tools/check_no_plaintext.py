@@ -23,6 +23,8 @@ PHONE = re.compile(r"(?<![\d.])\(?\d{3}\)?[ .-]\d{3}[ .-]\d{4}(?!\d)")
 ALLOWED_EMAIL_FILES = ("assets/vendor/",)   # third-party library headers
 # Public organizational contacts deliberately published on the events page (NOT residents):
 PUBLIC_CONTACT_EMAILS = {"lafayettefirewise@gmail.com"}
+# Public photo credits required by the image licenses (photographers, NOT residents); blanked out before the name check:
+PUBLIC_CREDITS = ("Peter J. Caprio",)
 
 def staged():
     if "--tracked" in sys.argv:
@@ -85,6 +87,7 @@ def main():
                 if m.lower() not in PUBLIC_CONTACT_EMAILS: bad.append(f"{p}: contains an email address ({m[:3]}...)")
             for m in PHONE.findall(text): bad.append(f"{p}: contains a phone-number pattern")
         low = text.lower()
+        for cr in PUBLIC_CREDITS: low = low.replace(cr.lower(), " ")
         for v in vals:
             if v.lower() in low: bad.append(f"{p}: contains a private value from residents/owner data or the password")
     if bad:
