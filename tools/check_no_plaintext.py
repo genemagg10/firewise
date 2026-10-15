@@ -67,6 +67,10 @@ def secrets():
                     if "@" in part and EMAIL.fullmatch(part): vals.add(part)
                     elif c in ("display_name", "display_names", "name", "matched_owner_name", "owner_record") and len(part) >= 6 and " " in part:
                         vals.add(part)
+                    elif c in ("contact1_name", "contact2_name") and "," in part:     # directory "Last, First" -> both orders
+                        last, first = [x.strip() for x in part.split(",", 1)]
+                        for nm in (f"{first} {last}", f"{last}, {first}"):
+                            if len(nm) >= 6 and first and last: vals.add(nm)
             if r.get("evidence") and len(r["evidence"]) >= 20: vals.add(r["evidence"].strip())
     pw = os.environ.get("FIREWISE_PASSWORD")
     if pw: vals.add(pw)
