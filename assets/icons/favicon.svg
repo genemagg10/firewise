@@ -1,37 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <style>
-    #flame{transform-origin:270px 448px;animation:flicker 2.6s ease-in-out infinite}
-    @keyframes flicker{0%,100%{transform:scale(1,1) skewX(0)}30%{transform:scale(1.03,.97) skewX(-2deg)}60%{transform:scale(.98,1.04) skewX(1.5deg)}80%{transform:scale(1.01,.99) skewX(-.5deg)}}
-    @media (prefers-reduced-motion:reduce){#flame{animation:none}}
-  </style>
-  <defs>
-    <radialGradient id="bg" cx="50%" cy="46%" r="62%">
-      <stop offset="0" stop-color="#329566"/>
-      <stop offset=".6" stop-color="#22603f"/>
-      <stop offset="1" stop-color="#173b2b"/>
-    </radialGradient>
-    <radialGradient id="glow" cx="50%" cy="58%" r="45%">
-      <stop offset="0" stop-color="#ffb347" stop-opacity=".45"/>
-      <stop offset="1" stop-color="#ffb347" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="fl" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffe14d"/>
-      <stop offset=".38" stop-color="#ffa323"/>
-      <stop offset=".72" stop-color="#ff6a1f"/>
-      <stop offset="1" stop-color="#e3261b"/>
-    </linearGradient>
-    <linearGradient id="core" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#fff7b0"/>
-      <stop offset="1" stop-color="#ffcf3a"/>
-    </linearGradient>
-    <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#5fe3bf"/>
-      <stop offset="1" stop-color="#17a585"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
-      <g transform="translate(-14 4) scale(.96)"><g id="flame">
-    <path d="M256 448C170 448 118 390 122 318C125 266 152 232 174 200C180 232 192 252 214 262C204 206 222 150 268 104C288 84 300 66 306 44C322 92 316 132 332 168C342 190 360 204 368 178C372 166 372 152 370 138C402 176 398 224 392 260C410 240 414 214 416 196C434 232 434 278 424 320C406 396 342 448 256 448Z" fill="url(#fl)" stroke="#5a1a0c" stroke-width="26" stroke-linejoin="round"/>
-    <path d="M258 420C212 420 186 390 188 352C190 318 214 296 230 270C236 292 246 304 262 308C262 276 276 250 296 228C302 262 330 282 330 330C330 384 300 420 258 420Z" fill="url(#core)"/>
-  </g></g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512"><defs><radialGradient id="bg" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#2f8a5c"/><stop offset=".55" stop-color="#235a40"/><stop offset="1" stop-color="#143524"/></radialGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset=".45" stop-color="#f3e6c4"/><stop offset="1" stop-color="#cdb98c"/></linearGradient>
+<linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9c79c"/><stop offset=".25" stop-color="#ecdfbc"/><stop offset="1" stop-color="#f6ecd2"/></linearGradient>
+<linearGradient id="fo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset=".3" stop-color="#ff9a26"/><stop offset=".7" stop-color="#f2521c"/><stop offset="1" stop-color="#c41a14"/></linearGradient>
+<radialGradient id="fi" cx="50%" cy="72%" r="65%"><stop offset="0" stop-color="#fffbd0"/><stop offset=".45" stop-color="#ffe04a"/><stop offset="1" stop-color="#ffa51f"/></radialGradient>
+<radialGradient id="glow" cx="50%" cy="62%" r="45%"><stop offset="0" stop-color="#ffcf5a" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf5a" stop-opacity="0"/></radialGradient>
+<linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#bg)"/><g><g><path d="M256 58C300 84 352 96 404 98C412 98 418 104 418 112V236C418 344 352 414 256 456C160 414 94 344 94 236V112C94 104 100 98 108 98C160 96 212 84 256 58Z" fill="url(#rim)"/></g><path d="M256 58C300 84 352 96 404 98C412 98 418 104 418 112V236C418 344 352 414 256 456C160 414 94 344 94 236V112C94 104 100 98 108 98C160 96 212 84 256 58Z" fill="none" stroke="#14301f" stroke-width="6"/></g><g transform="translate(56.31999999999999 56.53999999999999) scale(0.78)"><g><path d="M256 58C300 84 352 96 404 98C412 98 418 104 418 112V236C418 344 352 414 256 456C160 414 94 344 94 236V112C94 104 100 98 108 98C160 96 212 84 256 58Z" fill="url(#panel)"/></g></g><g transform="translate(256 272) scale(0.7) translate(-276 -246)"><path d="M256 448C170 448 118 390 122 318C125 266 152 232 174 200C180 232 192 252 214 262C204 206 222 150 268 104C288 84 300 66 306 44C322 92 316 132 332 168C342 190 360 204 368 178C372 166 372 152 370 138C402 176 398 224 392 260C410 240 414 214 416 196C434 232 434 278 424 320C406 396 342 448 256 448Z" fill="url(#fo)"/><path d="M258 420C212 420 186 390 188 352C190 318 214 296 230 270C236 292 246 304 262 308C262 276 276 250 296 228C302 262 330 282 330 330C330 384 300 420 258 420Z" fill="url(#fi)"/></g></svg>
