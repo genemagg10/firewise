@@ -290,3 +290,6 @@ body.organizer-page:not(.unlocked) > footer.site{display:none !important}
   .hero-band h1,.hero-band .lede{color:#000}
   .card{break-inside:avoid}
 }
+
+.event-actions{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem}
+.event-actions .btn{font-size:.85rem;padding:.4rem .7rem}

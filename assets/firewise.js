@@ -182,6 +182,11 @@
       <p>${esc(e.description)}</p>
       ${e.organizer ? `<div class="src">${esc(e.organizer)}</div>` : ""}
       ${e.link ? `<a href="${esc(e.link)}" target="_blank" rel="noopener noreferrer">Details</a>` : ""}
+      ${!past && (e.zoom || e.ics || e.flyer) ? `<div class="event-actions">
+        ${e.zoom ? `<a class="btn" href="${esc(e.zoom)}" target="_blank" rel="noopener noreferrer">Join on Zoom</a>` : ""}
+        ${e.ics ? `<a class="btn secondary" href="${esc(e.ics)}" download>Add to calendar</a>` : ""}
+        ${e.flyer ? `<a class="btn secondary" href="${esc(e.flyer)}" target="_blank" rel="noopener">Flyer (PDF)</a>` : ""}
+      </div>` : ""}
     </article>`;
   }
 

@@ -1,0 +1,15 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Las Trampas Firewise//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:lt-firewise-evac-zoom-2026-11-04
+DTSTAMP:20261022T230000Z
+DTSTART:20261105T030000Z
+DTEND:20261105T043000Z
+SUMMARY:Wildfire & Earthquake Preparedness & Evacuation (Zoom)
+DESCRIPTION:Free Zoom with Andy Comly\, Emergency Evacuation Coordinator\, Lafayette PD. Get Ready\, Stay Informed\, Evacuate\, Recover.\nMeeting ID 871 2926 9439\nJoin: https://ci-lafayette-ca-us.zoom.us/j/87129269439?pwd=tA4GnGbmTNk4vnj2QM64JhLlavCGMt.1
+LOCATION:https://ci-lafayette-ca-us.zoom.us/j/87129269439?pwd=tA4GnGbmTNk4vnj2QM64JhLlavCGMt.1
+URL:https://ci-lafayette-ca-us.zoom.us/j/87129269439?pwd=tA4GnGbmTNk4vnj2QM64JhLlavCGMt.1
+END:VEVENT
+END:VCALENDAR

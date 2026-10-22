@@ -9,7 +9,10 @@
   "organizer": "Contra Costa County Fire Protection District (Con Fire)",
   "cost": "Free \u00b7 no registration",
   "description": "Fire Prevention Week open house for the whole family: live demos, education booths, fire apparatus, food trucks, and a chance to meet the crews. This year's theme is \"Charge Into Fire Safety\" (lithium-ion battery safety).",
-  "link": "https://www.cccfpd.org/Calendar.aspx?EID=942"
+  "link": "https://www.cccfpd.org/Calendar.aspx?EID=942",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
  },
  {
   "id": "mofd-open-house-2026",
@@ -21,7 +24,10 @@
   "organizer": "Moraga-Orinda Fire District (neighboring district)",
   "cost": "",
   "description": "Annual Fire Prevention Week open house and pancake breakfast with station tours, firefighters, and safety info. Check mofd.org for hours before going.",
-  "link": "https://diablofiresafe.org/blog/2026-fire-prevention-week-events"
+  "link": "https://diablofiresafe.org/blog/2026-fire-prevention-week-events",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
  },
  {
   "id": "cert-meeting-2026-10",
@@ -33,7 +39,10 @@
   "organizer": "Lamorinda CERT",
   "cost": "Free \u00b7 open to the public",
   "description": "Local earthquake consequences, including water availability and quality, with speakers from LMOCERT and EBMUD. The registration form opens the Zoom; don't submit it before 6:50 PM.",
-  "link": "https://lamorindacert.org/monthly-meeting-registration/"
+  "link": "https://lamorindacert.org/monthly-meeting-registration/",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
  },
  {
   "id": "shakeout-2026",
@@ -45,7 +54,10 @@
   "organizer": "Earthquake Country Alliance",
   "cost": "Free",
   "description": "Statewide Drop, Cover, and Hold On drill. Households and neighborhood groups can register to take part.",
-  "link": "https://www.shakeout.org/register/register.php"
+  "link": "https://www.shakeout.org/register/register.php",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
  },
  {
   "id": "public-safety-day-2026",
@@ -57,7 +69,10 @@
   "organizer": "Lamorinda CERT and community partners",
   "cost": "Free",
   "description": "Family morning with kids' activities, free food, and safety info from Lafayette Police, Contra Costa County Fire Prevention, the American Red Cross, CERT, PG&E, the Lamorinda Radio Interest Group, and Contra Costa Search & Rescue. Fire truck visit at 10 AM.",
-  "link": "https://lamorindacert.org/calendar/4th-annual-lamorinda-public-safety-day/"
+  "link": "https://lamorindacert.org/calendar/4th-annual-lamorinda-public-safety-day/",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
  },
  {
   "id": "safe-at-scale-2026",
@@ -69,7 +84,25 @@
   "organizer": "Sustainable Contra Costa / Orinda Theatre",
   "cost": "Ticketed",
   "description": "PBS documentary on lessons from the January 2025 LA fires, followed by a panel with Sen. Tim Grayson, Asm. Rebecca Bauer-Kahan, MOFD Chief Jeff Isaacs, director Trip Jennings, and IBHS's Steve Hawks on home hardening and insurance-relevant mitigation.",
-  "link": "https://www.orindamovies.com/events/77906-safe-at-scale-weathered/"
+  "link": "https://www.orindamovies.com/events/77906-safe-at-scale-weathered/",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
+ },
+ {
+  "id": "evac-zoom-2026-11-04",
+  "title": "Wildfire & Earthquake Preparedness & Evacuation (Zoom)",
+  "date": "2026-11-04",
+  "end_date": "",
+  "time": "7:00 PM PT",
+  "location": "Online (Zoom) \u00b7 Meeting ID 871 2926 9439",
+  "organizer": "Presented by Andy Comly, Emergency Evacuation Coordinator, Lafayette Police Department",
+  "cost": "Free \u00b7 open to Las Trampas and Hamlin Firewise neighbors",
+  "description": "Hosted by our neighborhood Firewise initiative. Learn how to Get Ready, Stay Informed, Evacuate, and Recover when wildfire or an earthquake hits.",
+  "link": "",
+  "zoom": "https://ci-lafayette-ca-us.zoom.us/j/87129269439?pwd=tA4GnGbmTNk4vnj2QM64JhLlavCGMt.1",
+  "ics": "assets/ics/nov4-evacuation-zoom.ics",
+  "flyer": "assets/flyers/nov4-evacuation-zoom-flyer.pdf"
  },
  {
   "id": "confire-cpr-2026-11-21",
@@ -81,7 +114,10 @@
   "organizer": "Con Fire",
   "cost": "Free \u00b7 ages 14+ \u00b7 live or work in the district",
   "description": "Complete the free online AHA Heartsaver course first, then attend this in-person skills session. Lafayette is in Con Fire's district. (The Oct 20, Oct 24, and Nov 17 sessions are full.)",
-  "link": "https://www.cccfpd.org/453/Learn-CPR"
+  "link": "https://www.cccfpd.org/453/Learn-CPR",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
  },
  {
   "id": "confire-cpr-2026-12-15",
@@ -93,7 +129,10 @@
   "organizer": "Con Fire",
   "cost": "Free \u00b7 ages 14+ \u00b7 live or work in the district",
   "description": "Complete the free online AHA Heartsaver course first, then attend this in-person skills session. Lafayette is in Con Fire's district. (The Oct 20, Oct 24, and Nov 17 sessions are full.)",
-  "link": "https://www.cccfpd.org/453/Learn-CPR"
+  "link": "https://www.cccfpd.org/453/Learn-CPR",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
  },
  {
   "id": "confire-cpr-2026-12-19",
@@ -105,7 +144,10 @@
   "organizer": "Con Fire",
   "cost": "Free \u00b7 ages 14+ \u00b7 live or work in the district",
   "description": "Complete the free online AHA Heartsaver course first, then attend this in-person skills session. Lafayette is in Con Fire's district. (The Oct 20, Oct 24, and Nov 17 sessions are full.)",
-  "link": "https://www.cccfpd.org/453/Learn-CPR"
+  "link": "https://www.cccfpd.org/453/Learn-CPR",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
  },
  {
   "id": "cert-basic-winter-2027",
@@ -117,6 +159,9 @@
   "organizer": "Lamorinda CERT",
   "cost": "$40 for Lamorinda residents \u00b7 registration open",
   "description": "Nine evening classes covering home preparedness, wildfire and earthquake, fire safety, disaster medical, and light search and rescue, plus a Feb 25 skills exercise at the Con Fire Training Center. Includes a free CERT backpack and medical kit.",
-  "link": "https://lamorindacert.org/training/classes/"
+  "link": "https://lamorindacert.org/training/classes/",
+  "zoom": "",
+  "ics": "",
+  "flyer": ""
  }
 ]
